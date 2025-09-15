@@ -71,8 +71,9 @@ const PancakeTimer: React.FC = () => {
         setSettings(savedSettings)
         setTargetTime(savedSettings.flipInterval)
         setRemainingTime(savedSettings.flipInterval)
-        // 初始化动画进度
+        // 初始化动画进度为0（满圈状态）
         setAnimatedProgress(0)
+        setIsTransitioning(false)
       } catch (error) {
         console.error('Failed to load settings:', error)
         showAlert('加载设置失败')
@@ -123,6 +124,9 @@ const PancakeTimer: React.FC = () => {
           if (prev <= 1) {
             // 时间到了，触发提醒
             handleTimerComplete()
+            // 重新开始计时时，同时重置动画进度
+            setAnimatedProgress(0)
+            setIsTransitioning(false)
             return targetTime // 重新开始计时
           }
           return prev - 1
@@ -251,6 +255,11 @@ const PancakeTimer: React.FC = () => {
   const toggleTimer = () => {
     if (timerState === 'stopped' || timerState === 'paused') {
       setTimerState('running')
+      // 开始计时时，确保动画进度与当前时间同步
+      if (!isTransitioning && targetTime > 0) {
+        const currentProgress = ((targetTime - remainingTime) / targetTime) * 100
+        setAnimatedProgress(currentProgress)
+      }
     } else {
       setTimerState('paused')
     }
@@ -260,16 +269,29 @@ const PancakeTimer: React.FC = () => {
   const resetTimer = () => {
     setRemainingTime(targetTime)
     setTimerState('running')
+    // 重置动画进度，确保圈圈从满重新开始
+    setAnimatedProgress(0)
+    setIsTransitioning(false)
   }
 
   // 调整时间（+5秒/-5秒）
   const adjustTime = (delta: number) => {
     if (timerState === 'running') {
-      setRemainingTime(prev => Math.max(1, prev + delta))
+      setRemainingTime(prev => {
+        const newRemaining = Math.max(1, prev + delta)
+        // 运行时调整时间，立即更新动画进度，确保圈圈同步
+        const newProgress = ((targetTime - newRemaining) / targetTime) * 100
+        setAnimatedProgress(newProgress)
+        setIsTransitioning(false)
+        return newRemaining
+      })
     } else {
       const newTime = Math.max(10, targetTime + delta)
       setTargetTime(newTime)
       setRemainingTime(newTime)
+      // 停止状态下调整时间，重置动画进度为0
+      setAnimatedProgress(0)
+      setIsTransitioning(false)
       
       // 保存新的时间设置
       if (settings) {
