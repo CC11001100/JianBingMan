@@ -114,7 +114,7 @@ const PancakeTimer: React.FC = () => {
 
   // 计时器逻辑
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
+    let interval: number | null = null
 
     if (timerState === 'running' && remainingTime > 0) {
       interval = setInterval(() => {

@@ -11,10 +11,13 @@ interface WakeLockSentinel {
   removeEventListener(type: 'release', listener: (this: WakeLockSentinel, ev: Event) => void): void;
 }
 
-interface NavigatorWithWakeLock extends Navigator {
-  wakeLock?: {
-    request(type: 'screen'): Promise<WakeLockSentinel>;
-  };
+// 定义Wake Lock API类型，兼容不同浏览器环境
+interface CustomWakeLock {
+  request(type: 'screen'): Promise<WakeLockSentinel>;
+}
+
+interface NavigatorWithCustomWakeLock {
+  wakeLock?: CustomWakeLock;
 }
 
 class WakeLockManager {
@@ -32,8 +35,8 @@ class WakeLockManager {
    * 初始化Wake Lock支持检测
    */
   private init(): void {
-    const nav = navigator as NavigatorWithWakeLock
-    this.isSupported = 'wakeLock' in nav && 'request' in (nav.wakeLock || {})
+    const nav = navigator as any as NavigatorWithCustomWakeLock
+    this.isSupported = 'wakeLock' in nav && !!nav.wakeLock && 'request' in nav.wakeLock
     
     if (this.isSupported) {
       // 监听页面可见性变化，在页面重新可见时重新请求Wake Lock
@@ -62,7 +65,7 @@ class WakeLockManager {
    * 检查Wake Lock是否处于活跃状态
    */
   isActive_(): boolean {
-    return this.isActive && this.wakeLock && !this.wakeLock.released
+    return this.isActive && this.wakeLock != null && !this.wakeLock.released
   }
 
   /**
@@ -75,7 +78,7 @@ class WakeLockManager {
     }
 
     try {
-      const nav = navigator as NavigatorWithWakeLock
+      const nav = navigator as any as NavigatorWithCustomWakeLock
       this.wakeLock = await nav.wakeLock!.request('screen')
       this.isActive = true
       this.retryCount = 0

@@ -60,7 +60,7 @@ const CalibrationDialog: React.FC<CalibrationDialogProps> = ({
 
   // 计时逻辑
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
+    let interval: number | null = null
 
     if (isRunning && startTime) {
       interval = setInterval(() => {
