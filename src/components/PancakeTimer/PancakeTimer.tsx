@@ -30,8 +30,8 @@ type TimerState = 'stopped' | 'running' | 'paused'
 const PancakeTimer: React.FC = () => {
   // 状态管理
   const [timerState, setTimerState] = useState<TimerState>('stopped')
-  const [remainingTime, setRemainingTime] = useState(120) // 默认2分钟
-  const [targetTime, setTargetTime] = useState(120)
+  const [remainingTime, setRemainingTime] = useState(20) // 默认20秒
+  const [targetTime, setTargetTime] = useState(20)
   const [settings, setSettings] = useState<PancakeSettings | null>(null)
   
   // 对话框状态

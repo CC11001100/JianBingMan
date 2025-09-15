@@ -90,7 +90,7 @@ class StorageManager {
       
       request.onsuccess = () => {
         const defaultSettings: PancakeSettings = {
-          flipInterval: 120, // 默认2分钟
+          flipInterval: 20, // 默认20秒
           customPrompt: '该翻面了！',
           volume: 0.8,
           vibrationEnabled: true,
