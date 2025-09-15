@@ -2,7 +2,10 @@
  * 语音合成模块
  * 使用Web Speech API实现语音提醒功能
  * 支持自定义提示语的预生成和缓存
+ * 支持用户录制的自定义语音
  */
+
+import { storageManager } from './storage'
 
 interface VoiceSettings {
   volume: number // 0-1
@@ -10,6 +13,7 @@ interface VoiceSettings {
   pitch: number // 0-2
   lang: string
   voiceURI?: string
+  customVoiceId?: string // 自定义语音ID
 }
 
 interface CachedAudio {
@@ -151,6 +155,11 @@ class SpeechSynthesisManager {
 
     const finalSettings = { ...this.defaultSettings, ...settings }
 
+    // 如果指定了自定义语音ID，使用自定义语音
+    if (finalSettings.customVoiceId) {
+      return this.playCustomVoice(finalSettings.customVoiceId, finalSettings.volume)
+    }
+
     return new Promise((resolve, reject) => {
       // 停止当前播放的语音
       speechSynthesis.cancel()
@@ -177,6 +186,60 @@ class SpeechSynthesisManager {
 
       // 播放语音
       speechSynthesis.speak(utterance)
+    })
+  }
+
+  /**
+   * 播放自定义录制的语音
+   */
+  async playCustomVoice(voiceId: string, volume = 0.8): Promise<void> {
+    try {
+      // 从IndexedDB获取自定义语音
+      const voiceRecord = await storageManager.getCustomVoice(voiceId)
+      
+      if (!voiceRecord) {
+        throw new Error('自定义语音不存在')
+      }
+
+      // 停止当前播放的语音
+      speechSynthesis.cancel()
+
+      // 播放自定义语音文件
+      await this.playAudioBlob(voiceRecord.audioBlob, volume)
+
+      // 更新最后使用时间
+      await storageManager.updateVoiceLastUsed(voiceId)
+    } catch (error) {
+      console.error('Failed to play custom voice:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 播放音频Blob
+   */
+  private async playAudioBlob(audioBlob: Blob, volume = 0.8): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        const url = URL.createObjectURL(audioBlob)
+        const audio = new Audio(url)
+        
+        audio.volume = Math.max(0, Math.min(1, volume))
+        
+        audio.onended = () => {
+          URL.revokeObjectURL(url)
+          resolve()
+        }
+        
+        audio.onerror = () => {
+          URL.revokeObjectURL(url)
+          reject(new Error('播放自定义语音失败'))
+        }
+        
+        audio.play().catch(reject)
+      } catch (error) {
+        reject(error)
+      }
     })
   }
 

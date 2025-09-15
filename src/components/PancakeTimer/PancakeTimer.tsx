@@ -204,15 +204,26 @@ const PancakeTimer: React.FC = () => {
       
       // 播放语音提醒（如果启用）
       if (settings.speechEnabled) {
-        promises.push(
-          speechManager.speakWithEnhancedSettings(
-            settings.customPrompt,
-            settings.volume,
-            settings.speechRate,
-            settings.speechPitch,
-            settings.voiceType
+        if (settings.customVoiceId) {
+          // 使用自定义录制的语音
+          promises.push(
+            speechManager.speak('', {
+              volume: settings.volume,
+              customVoiceId: settings.customVoiceId
+            })
           )
-        )
+        } else {
+          // 使用系统语音合成
+          promises.push(
+            speechManager.speakWithEnhancedSettings(
+              settings.customPrompt,
+              settings.volume,
+              settings.speechRate,
+              settings.speechPitch,
+              settings.voiceType
+            )
+          )
+        }
       }
       
       // 振动提醒

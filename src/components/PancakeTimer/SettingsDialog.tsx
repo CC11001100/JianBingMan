@@ -30,6 +30,7 @@ import {
 import { storageManager, type PancakeSettings } from '../../utils/storage'
 import { speechManager } from '../../utils/speechSynthesis'
 import { soundEffectsManager } from '../../utils/soundEffects'
+import VoiceRecorder from './VoiceRecorder'
 
 interface SettingsDialogProps {
   open: boolean
@@ -162,10 +163,14 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
   const [testingSoundEffect, setTestingSoundEffect] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [voiceMode, setVoiceMode] = useState<'system' | 'custom'>('system')
+  // const [customVoiceBlob, setCustomVoiceBlob] = useState<Blob | null>(null)
 
   // 同步外部设置到本地状态
   useEffect(() => {
     setLocalSettings(settings)
+    // 根据设置判断语音模式
+    setVoiceMode(settings.customVoiceId ? 'custom' : 'system')
   }, [settings])
 
   // 更新翻面时间
@@ -200,19 +205,34 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     return PRESET_PROMPTS.filter(prompt => prompt.category === selectedCategory)
   }
 
+  // 处理自定义语音选择
+  const handleCustomVoiceSelect = (_audioBlob: Blob | null, voiceId?: string | null) => {
+    // setCustomVoiceBlob(audioBlob)
+    setLocalSettings(prev => ({ ...prev, customVoiceId: voiceId || null }))
+  }
+
   // 测试语音
   const testVoice = async () => {
     if (testingVoice) return
     
     setTestingVoice(true)
     try {
-      await speechManager.speakWithEnhancedSettings(
-        localSettings.customPrompt,
-        localSettings.volume,
-        localSettings.speechRate,
-        localSettings.speechPitch,
-        localSettings.voiceType
-      )
+      if (voiceMode === 'custom' && localSettings.customVoiceId) {
+        // 测试自定义语音
+        await speechManager.speak('', {
+          volume: localSettings.volume,
+          customVoiceId: localSettings.customVoiceId
+        })
+      } else {
+        // 测试系统语音合成
+        await speechManager.speakWithEnhancedSettings(
+          localSettings.customPrompt,
+          localSettings.volume,
+          localSettings.speechRate,
+          localSettings.speechPitch,
+          localSettings.voiceType
+        )
+      }
     } catch (error) {
       console.error('Voice test failed:', error)
     } finally {
@@ -279,9 +299,12 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
       speechEnabled: true,
       soundEffectsEnabled: true,
       soundEffectType: 'chime',
+      customVoiceId: null,
       lastUsed: Date.now()
     }
     setLocalSettings(defaultSettings)
+    setVoiceMode('system')
+    // setCustomVoiceBlob(null)
   }
 
   const { minutes, seconds } = getMinutesSeconds()
@@ -428,11 +451,16 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             <Button 
               variant="outlined" 
               onClick={testVoice}
-              disabled={testingVoice || !localSettings.customPrompt.trim() || !localSettings.speechEnabled}
+              disabled={
+                testingVoice || 
+                !localSettings.speechEnabled ||
+                (voiceMode === 'system' && !localSettings.customPrompt.trim()) ||
+                (voiceMode === 'custom' && !localSettings.customVoiceId)
+              }
               startIcon={<VolumeIcon />}
               size="small"
             >
-              {testingVoice ? '测试中...' : '测试语音'}
+              {testingVoice ? '测试中...' : `测试${voiceMode === 'custom' ? '自定义语音' : '语音合成'}`}
             </Button>
             
             {!speechManager.isSupported_() && (
@@ -497,30 +525,79 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
 
           {localSettings.speechEnabled && (
             <>
-              {/* 语速控制 */}
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" gutterBottom>
-                  语速
+              {/* 语音模式选择 */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" gutterBottom sx={{ fontWeight: 500 }}>
+                  语音模式
                 </Typography>
-                <Slider
-                  value={localSettings.speechRate}
-                  onChange={(_, value) => setLocalSettings(prev => ({ 
-                    ...prev, 
-                    speechRate: value as number 
-                  }))}
-                  min={0.1}
-                  max={3}
-                  step={0.1}
-                  marks={[
-                    { value: 0.5, label: '慢' },
-                    { value: 1, label: '正常' },
-                    { value: 2, label: '快' },
-                    { value: 3, label: '很快' }
-                  ]}
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={(value) => `${value}x`}
-                />
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Button
+                      fullWidth
+                      variant={voiceMode === 'system' ? 'contained' : 'outlined'}
+                      onClick={() => {
+                        setVoiceMode('system')
+                        setLocalSettings(prev => ({ ...prev, customVoiceId: null }))
+                      }}
+                      sx={{ py: 1 }}
+                    >
+                      系统语音合成
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button
+                      fullWidth
+                      variant={voiceMode === 'custom' ? 'contained' : 'outlined'}
+                      onClick={() => setVoiceMode('custom')}
+                      sx={{ py: 1 }}
+                    >
+                      自定义录音
+                    </Button>
+                  </Grid>
+                </Grid>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  {voiceMode === 'system' 
+                    ? '使用系统语音合成播放提示语' 
+                    : '使用您录制的自定义语音作为提醒'
+                  }
+                </Typography>
               </Box>
+
+              {voiceMode === 'custom' ? (
+                /* 自定义录音模式 */
+                <Box sx={{ mb: 3 }}>
+                  <VoiceRecorder
+                    onVoiceSelect={handleCustomVoiceSelect}
+                    selectedVoiceId={localSettings.customVoiceId}
+                  />
+                </Box>
+              ) : (
+                /* 系统语音模式 */
+                <>
+                  {/* 语速控制 */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" gutterBottom>
+                      语速
+                    </Typography>
+                    <Slider
+                      value={localSettings.speechRate}
+                      onChange={(_, value) => setLocalSettings(prev => ({ 
+                        ...prev, 
+                        speechRate: value as number 
+                      }))}
+                      min={0.1}
+                      max={3}
+                      step={0.1}
+                      marks={[
+                        { value: 0.5, label: '慢' },
+                        { value: 1, label: '正常' },
+                        { value: 2, label: '快' },
+                        { value: 3, label: '很快' }
+                      ]}
+                      valueLabelDisplay="auto"
+                      valueLabelFormat={(value) => `${value}x`}
+                    />
+                  </Box>
 
               {/* 音调控制 */}
               <Box sx={{ mb: 2 }}>
@@ -603,6 +680,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
                   点击预设可快速应用对应的语速、音调和音量设置
                 </Typography>
               </Box>
+                </>
+              )}
             </>
           )}
         </Box>

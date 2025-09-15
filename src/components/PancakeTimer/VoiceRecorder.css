@@ -1,0 +1,197 @@
+/* VoiceRecorder 组件样式 */
+
+.voice-recorder {
+  min-height: 400px;
+}
+
+.recording-indicator {
+  animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.voice-record-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.voice-record-item:hover {
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+.voice-record-item.selected {
+  background-color: rgba(25, 118, 210, 0.08);
+  border-color: #1976d2 !important;
+}
+
+.recording-time {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.waveform-container {
+  position: relative;
+  height: 60px;
+  width: 100%;
+  background: linear-gradient(90deg, #f5f5f5 0%, #e0e0e0 50%, #f5f5f5 100%);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.waveform-bar {
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to top, #1976d2, #42a5f5);
+  border-radius: 1px;
+  animation: waveform 1.5s ease-in-out infinite;
+}
+
+@keyframes waveform {
+  0%, 100% {
+    height: 20%;
+  }
+  50% {
+    height: 80%;
+  }
+}
+
+.voice-card {
+  border: 2px solid transparent;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.voice-card:hover {
+  border-color: rgba(25, 118, 210, 0.3);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+}
+
+.voice-card.selected {
+  border-color: #1976d2;
+  box-shadow: 0 4px 20px rgba(25, 118, 210, 0.3);
+}
+
+.recording-controls {
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.playback-controls {
+  gap: 8px;
+  align-items: center;
+}
+
+.voice-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.voice-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.voice-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.voice-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.voice-list::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #757575;
+}
+
+.empty-state .empty-icon {
+  font-size: 48px;
+  color: #e0e0e0;
+  margin-bottom: 16px;
+}
+
+.recording-preview {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.recording-preview .preview-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.recording-preview .preview-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.voice-duration-chip {
+  background: rgba(25, 118, 210, 0.1);
+  color: #1976d2;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-bottom: 8px;
+}
+
+.recording-status.active {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.recording-status .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.recording-status.active .status-dot {
+  animation: recording-pulse 1s ease-in-out infinite;
+}
+
+@keyframes recording-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}

@@ -24,6 +24,8 @@ interface PancakeSettings {
   soundEffectsEnabled: boolean
   /** 音效类型 ('beep' | 'chime' | 'bell' | 'alarm') */
   soundEffectType: 'beep' | 'chime' | 'bell' | 'alarm'
+  /** 自定义语音ID（如果为null则使用系统语音合成） */
+  customVoiceId?: string | null
   /** 最后使用时间 */
   lastUsed: number
 }
@@ -35,15 +37,31 @@ interface CalibrationData {
   calibratedAt: number
 }
 
+interface CustomVoiceRecord {
+  /** 唯一标识符 */
+  id: string
+  /** 录音名称 */
+  name: string
+  /** 音频数据 */
+  audioBlob: Blob
+  /** 录音时长（秒） */
+  duration: number
+  /** 创建时间 */
+  createdAt: number
+  /** 最后使用时间 */
+  lastUsed?: number
+}
+
 class StorageManager {
   private dbName = 'PancakeTimerDB'
-  private version = 1
+  private version = 2 // 升级版本以支持自定义语音
   private db: IDBDatabase | null = null
 
   private readonly STORES = {
     SETTINGS: 'settings',
     CALIBRATION: 'calibration',
-    HISTORY: 'history'
+    HISTORY: 'history',
+    CUSTOM_VOICES: 'custom_voices'
   } as const
 
   /**
@@ -82,6 +100,15 @@ class StorageManager {
             autoIncrement: true 
           })
           historyStore.createIndex('timestamp', 'timestamp', { unique: false })
+        }
+
+        // 创建自定义语音存储
+        if (!db.objectStoreNames.contains(this.STORES.CUSTOM_VOICES)) {
+          const voicesStore = db.createObjectStore(this.STORES.CUSTOM_VOICES, { 
+            keyPath: 'id' 
+          })
+          voicesStore.createIndex('createdAt', 'createdAt', { unique: false })
+          voicesStore.createIndex('lastUsed', 'lastUsed', { unique: false })
         }
       }
     })
@@ -234,12 +261,121 @@ class StorageManager {
   }
 
   /**
+   * 保存自定义语音记录
+   */
+  async saveCustomVoice(voiceRecord: CustomVoiceRecord): Promise<void> {
+    await this.ensureConnection()
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.STORES.CUSTOM_VOICES], 'readwrite')
+      const store = transaction.objectStore(this.STORES.CUSTOM_VOICES)
+      
+      const request = store.put(voiceRecord)
+
+      request.onerror = () => reject(new Error('Failed to save custom voice'))
+      request.onsuccess = () => resolve()
+    })
+  }
+
+  /**
+   * 获取所有自定义语音记录
+   */
+  async getCustomVoices(): Promise<CustomVoiceRecord[]> {
+    await this.ensureConnection()
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.STORES.CUSTOM_VOICES], 'readonly')
+      const store = transaction.objectStore(this.STORES.CUSTOM_VOICES)
+      const index = store.index('createdAt')
+      
+      const request = index.openCursor(null, 'prev') // 按创建时间倒序
+      const results: CustomVoiceRecord[] = []
+
+      request.onerror = () => reject(new Error('Failed to get custom voices'))
+      
+      request.onsuccess = () => {
+        const cursor = request.result
+        if (cursor) {
+          results.push(cursor.value)
+          cursor.continue()
+        } else {
+          resolve(results)
+        }
+      }
+    })
+  }
+
+  /**
+   * 获取单个自定义语音记录
+   */
+  async getCustomVoice(id: string): Promise<CustomVoiceRecord | null> {
+    await this.ensureConnection()
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.STORES.CUSTOM_VOICES], 'readonly')
+      const store = transaction.objectStore(this.STORES.CUSTOM_VOICES)
+      const request = store.get(id)
+
+      request.onerror = () => reject(new Error('Failed to get custom voice'))
+      request.onsuccess = () => {
+        resolve(request.result || null)
+      }
+    })
+  }
+
+  /**
+   * 删除自定义语音记录
+   */
+  async deleteCustomVoice(id: string): Promise<void> {
+    await this.ensureConnection()
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.STORES.CUSTOM_VOICES], 'readwrite')
+      const store = transaction.objectStore(this.STORES.CUSTOM_VOICES)
+      const request = store.delete(id)
+
+      request.onerror = () => reject(new Error('Failed to delete custom voice'))
+      request.onsuccess = () => resolve()
+    })
+  }
+
+  /**
+   * 更新自定义语音的最后使用时间
+   */
+  async updateVoiceLastUsed(id: string): Promise<void> {
+    await this.ensureConnection()
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.STORES.CUSTOM_VOICES], 'readwrite')
+      const store = transaction.objectStore(this.STORES.CUSTOM_VOICES)
+      
+      // 先获取记录
+      const getRequest = store.get(id)
+      
+      getRequest.onerror = () => reject(new Error('Failed to get voice record'))
+      getRequest.onsuccess = () => {
+        const record = getRequest.result
+        if (record) {
+          // 更新最后使用时间
+          record.lastUsed = Date.now()
+          
+          const putRequest = store.put(record)
+          putRequest.onerror = () => reject(new Error('Failed to update voice last used'))
+          putRequest.onsuccess = () => resolve()
+        } else {
+          reject(new Error('Voice record not found'))
+        }
+      }
+    })
+  }
+
+  /**
    * 清空所有数据
    */
   async clearAllData(): Promise<void> {
     await this.ensureConnection()
 
-    const stores = [this.STORES.SETTINGS, this.STORES.CALIBRATION, this.STORES.HISTORY]
+    const stores = [this.STORES.SETTINGS, this.STORES.CALIBRATION, this.STORES.HISTORY, this.STORES.CUSTOM_VOICES]
     
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(stores, 'readwrite')
@@ -282,4 +418,4 @@ class StorageManager {
 
 // 导出单例
 export const storageManager = new StorageManager()
-export type { PancakeSettings, CalibrationData }
+export type { PancakeSettings, CalibrationData, CustomVoiceRecord }
