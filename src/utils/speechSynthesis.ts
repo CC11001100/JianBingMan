@@ -83,6 +83,57 @@ class SpeechSynthesisManager {
   }
 
   /**
+   * 根据语音类型选择最合适的声音
+   */
+  selectVoiceByType(voiceType: 'male' | 'female' | 'auto'): SpeechSynthesisVoice | null {
+    const chineseVoices = this.getChineseVoices()
+    
+    if (chineseVoices.length === 0) {
+      return null
+    }
+
+    if (voiceType === 'auto') {
+      // 自动选择第一个可用的中文语音
+      return chineseVoices[0]
+    }
+
+    // 尝试根据名称判断性别
+    const isFemaleVoice = (voice: SpeechSynthesisVoice) => {
+      const name = voice.name.toLowerCase()
+      return name.includes('female') || 
+             name.includes('woman') || 
+             name.includes('xiaoxiao') ||
+             name.includes('xiaoyi') ||
+             name.includes('xiaoyou') ||
+             name.includes('沁文') ||
+             name.includes('小雅') ||
+             name.includes('小艺')
+    }
+
+    const isMaleVoice = (voice: SpeechSynthesisVoice) => {
+      const name = voice.name.toLowerCase()
+      return name.includes('male') || 
+             name.includes('man') ||
+             name.includes('xiaoming') ||
+             name.includes('kangkang') ||
+             name.includes('小明') ||
+             name.includes('康康')
+    }
+
+    if (voiceType === 'female') {
+      const femaleVoice = chineseVoices.find(isFemaleVoice)
+      return femaleVoice || chineseVoices[0]
+    }
+
+    if (voiceType === 'male') {
+      const maleVoice = chineseVoices.find(isMaleVoice)
+      return maleVoice || chineseVoices[0]
+    }
+
+    return chineseVoices[0]
+  }
+
+  /**
    * 检查是否支持语音合成
    */
   isSupported_(): boolean {
@@ -183,6 +234,48 @@ class SpeechSynthesisManager {
   }
 
   /**
+   * 使用增强设置播放语音
+   */
+  async speakWithEnhancedSettings(
+    text: string, 
+    volume: number, 
+    rate: number, 
+    pitch: number,
+    voiceType: 'male' | 'female' | 'auto'
+  ): Promise<void> {
+    if (!this.isSupported) {
+      console.warn('Speech synthesis not supported')
+      return
+    }
+
+    return new Promise((resolve, reject) => {
+      // 停止当前播放的语音
+      speechSynthesis.cancel()
+
+      const utterance = new SpeechSynthesisUtterance(text)
+      
+      // 设置基本语音参数
+      utterance.volume = Math.max(0, Math.min(1, volume))
+      utterance.rate = Math.max(0.1, Math.min(10, rate))
+      utterance.pitch = Math.max(0, Math.min(2, pitch))
+      utterance.lang = 'zh-CN'
+
+      // 选择合适的语音
+      const selectedVoice = this.selectVoiceByType(voiceType)
+      if (selectedVoice) {
+        utterance.voice = selectedVoice
+      }
+
+      // 事件监听
+      utterance.onend = () => resolve()
+      utterance.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`))
+
+      // 播放语音
+      speechSynthesis.speak(utterance)
+    })
+  }
+
+  /**
    * 快速语音提醒（用于计时器）
    */
   async quickAlert(text: string, volume = 0.8): Promise<void> {
@@ -263,6 +356,98 @@ class SpeechSynthesisManager {
    */
   clearCache(): void {
     this.audioCache.clear()
+  }
+
+  /**
+   * 获取预设的语音风格
+   */
+  getVoiceStyles(): Array<{
+    id: string
+    name: string
+    description: string
+    settings: Partial<VoiceSettings>
+  }> {
+    return [
+      {
+        id: 'normal',
+        name: '标准语音',
+        description: '适合日常使用的标准设置',
+        settings: { rate: 1.0, pitch: 1.0, volume: 0.8 }
+      },
+      {
+        id: 'gentle',
+        name: '温和语音',
+        description: '温柔缓慢的语调，适合放松时使用',
+        settings: { rate: 0.8, pitch: 0.9, volume: 0.7 }
+      },
+      {
+        id: 'urgent',
+        name: '紧急提醒',
+        description: '快速高调的语音，适合紧急提醒',
+        settings: { rate: 1.3, pitch: 1.2, volume: 0.9 }
+      },
+      {
+        id: 'professional',
+        name: '专业播报',
+        description: '清晰标准的播报声，适合正式场合',
+        settings: { rate: 1.1, pitch: 1.0, volume: 0.8 }
+      },
+      {
+        id: 'cheerful',
+        name: '活泼语音',
+        description: '轻快活泼的语调，充满活力',
+        settings: { rate: 1.2, pitch: 1.1, volume: 0.8 }
+      },
+      {
+        id: 'calm',
+        name: '冷静语音',
+        description: '低沉稳重的语调，让人安心',
+        settings: { rate: 0.9, pitch: 0.8, volume: 0.7 }
+      }
+    ]
+  }
+
+  /**
+   * 使用预设风格播放语音
+   */
+  async speakWithStyle(
+    text: string,
+    styleId: string,
+    voiceType: 'male' | 'female' | 'auto' = 'auto'
+  ): Promise<void> {
+    const styles = this.getVoiceStyles()
+    const style = styles.find(s => s.id === styleId)
+    
+    if (!style) {
+      throw new Error(`Unknown voice style: ${styleId}`)
+    }
+
+    return new Promise((resolve, reject) => {
+      // 停止当前播放的语音
+      speechSynthesis.cancel()
+
+      const utterance = new SpeechSynthesisUtterance(text)
+      
+      // 应用风格设置
+      const settings = { ...this.defaultSettings, ...style.settings }
+      utterance.volume = Math.max(0, Math.min(1, settings.volume || 0.8))
+      utterance.rate = Math.max(0.1, Math.min(10, settings.rate || 1.0))
+      utterance.pitch = Math.max(0, Math.min(2, settings.pitch || 1.0))
+      utterance.lang = 'zh-CN'
+
+      // 选择合适的语音
+      const selectedVoice = this.selectVoiceByType(voiceType)
+      if (selectedVoice) {
+        utterance.voice = selectedVoice
+      }
+
+      // 事件监听
+      utterance.onend = () => resolve()
+      utterance.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`))
+
+      // 播放语音
+      speechSynthesis.speak(utterance)
+    })
   }
 
   /**

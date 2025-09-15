@@ -10,8 +10,20 @@ interface PancakeSettings {
   customPrompt: string
   /** 语音音量 (0-1) */
   volume: number
+  /** 语音语速 (0.1-10) */
+  speechRate: number
+  /** 语音音调 (0-2) */
+  speechPitch: number
+  /** 语音类型 ('male' | 'female' | 'auto') */
+  voiceType: 'male' | 'female' | 'auto'
   /** 是否启用振动 */
   vibrationEnabled: boolean
+  /** 是否启用语音 */
+  speechEnabled: boolean
+  /** 是否启用音效 */
+  soundEffectsEnabled: boolean
+  /** 音效类型 ('beep' | 'chime' | 'bell' | 'alarm') */
+  soundEffectType: 'beep' | 'chime' | 'bell' | 'alarm'
   /** 最后使用时间 */
   lastUsed: number
 }
@@ -93,7 +105,13 @@ class StorageManager {
           flipInterval: 20, // 默认20秒
           customPrompt: '该翻面了！',
           volume: 0.8,
+          speechRate: 1.0, // 正常语速
+          speechPitch: 1.0, // 正常音调
+          voiceType: 'auto', // 自动选择
           vibrationEnabled: true,
+          speechEnabled: true,
+          soundEffectsEnabled: true,
+          soundEffectType: 'chime',
           lastUsed: Date.now()
         }
 

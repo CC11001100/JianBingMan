@@ -24,6 +24,7 @@ import {
 import { storageManager, type PancakeSettings } from '../../utils/storage'
 import { speechManager } from '../../utils/speechSynthesis'
 import { wakeLockManager } from '../../utils/wakeLock'
+import { soundEffectsManager } from '../../utils/soundEffects'
 import SettingsDialog from './SettingsDialog'
 import CalibrationDialog from './CalibrationDialog'
 import './PancakeTimer.css'
@@ -188,13 +189,41 @@ const PancakeTimer: React.FC = () => {
     if (!settings) return
 
     try {
-      // 播放语音提醒
-      await speechManager.quickAlert(settings.customPrompt, settings.volume)
+      // 并行播放音效和语音（提升用户体验）
+      const promises: Promise<any>[] = []
+      
+      // 播放音效（如果启用）
+      if (settings.soundEffectsEnabled) {
+        promises.push(
+          soundEffectsManager.playEffect(settings.soundEffectType, {
+            volume: settings.volume * 0.6, // 音效音量稍低
+            duration: 0.8
+          })
+        )
+      }
+      
+      // 播放语音提醒（如果启用）
+      if (settings.speechEnabled) {
+        promises.push(
+          speechManager.speakWithEnhancedSettings(
+            settings.customPrompt,
+            settings.volume,
+            settings.speechRate,
+            settings.speechPitch,
+            settings.voiceType
+          )
+        )
+      }
       
       // 振动提醒
       if (settings.vibrationEnabled && 'vibrate' in navigator) {
         navigator.vibrate([500, 200, 500])
       }
+
+      // 等待音效和语音完成（但不阻塞其他操作）
+      Promise.all(promises).catch(error => {
+        console.warn('Audio alerts failed:', error)
+      })
 
       // 显示提示
       showAlert('⏰ ' + settings.customPrompt)
@@ -288,11 +317,20 @@ const PancakeTimer: React.FC = () => {
     const oldTargetTime = targetTime
     const wasRunning = timerState === 'running'
     
-    const newSettings = settings ? { ...settings, flipInterval: calibratedTime } : {
+    const newSettings: PancakeSettings = settings ? { 
+      ...settings, 
+      flipInterval: calibratedTime 
+    } : {
       flipInterval: calibratedTime,
       customPrompt: '该翻面了！',
       volume: 0.8,
+      speechRate: 1.0,
+      speechPitch: 1.0,
+      voiceType: 'auto',
       vibrationEnabled: true,
+      speechEnabled: true,
+      soundEffectsEnabled: true,
+      soundEffectType: 'chime',
       lastUsed: Date.now()
     }
     
