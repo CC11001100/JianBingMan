@@ -116,10 +116,10 @@ const PancakeTimer: React.FC = () => {
     }
   }
 
-  // 重置计时器
+  // 重置计时器（重新开始计时）
   const resetTimer = () => {
-    setTimerState('stopped')
     setRemainingTime(targetTime)
+    setTimerState('running')
   }
 
   // 调整时间（+5秒/-5秒）
