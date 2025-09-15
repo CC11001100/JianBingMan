@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Box,
   Typography,
@@ -17,10 +17,13 @@ import {
   Add as AddIcon,
   Remove as RemoveIcon,
   Settings as SettingsIcon,
-  Timer as TimerIcon
+  Timer as TimerIcon,
+  Lightbulb as LightbulbIcon,
+  LightbulbOutlined as LightbulbOutlinedIcon
 } from '@mui/icons-material'
 import { storageManager, type PancakeSettings } from '../../utils/storage'
 import { speechManager } from '../../utils/speechSynthesis'
+import { wakeLockManager } from '../../utils/wakeLock'
 import SettingsDialog from './SettingsDialog'
 import CalibrationDialog from './CalibrationDialog'
 import './PancakeTimer.css'
@@ -41,6 +44,23 @@ const PancakeTimer: React.FC = () => {
   // 提示状态
   const [alertMessage, setAlertMessage] = useState('')
   const [alertOpen, setAlertOpen] = useState(false)
+  
+  // 屏幕常亮状态
+  const [wakeLockSupported, setWakeLockSupported] = useState(false)
+  const [wakeLockActive, setWakeLockActive] = useState(false)
+  
+  // 动画过渡状态
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [animatedProgress, setAnimatedProgress] = useState(0)
+  const transitionStartTime = useRef<number | null>(null)
+  const startProgress = useRef<number>(0)
+  const endProgress = useRef<number>(0)
+
+  // 初始化Wake Lock支持检测
+  useEffect(() => {
+    setWakeLockSupported(wakeLockManager.isSupported_())
+    setWakeLockActive(wakeLockManager.isActive_())
+  }, [])
 
   // 加载设置
   useEffect(() => {
@@ -50,6 +70,8 @@ const PancakeTimer: React.FC = () => {
         setSettings(savedSettings)
         setTargetTime(savedSettings.flipInterval)
         setRemainingTime(savedSettings.flipInterval)
+        // 初始化动画进度
+        setAnimatedProgress(0)
       } catch (error) {
         console.error('Failed to load settings:', error)
         showAlert('加载设置失败')
@@ -57,6 +79,37 @@ const PancakeTimer: React.FC = () => {
     }
 
     loadSettings()
+  }, [])
+
+  // 管理屏幕常亮：计时器运行时保持屏幕常亮
+  useEffect(() => {
+    const manageWakeLock = async () => {
+      if (!wakeLockSupported) return
+
+      if (timerState === 'running') {
+        // 计时器开始运行时请求屏幕常亮
+        const success = await wakeLockManager.requestWakeLock()
+        setWakeLockActive(success)
+        if (success) {
+          console.log('屏幕常亮已激活')
+        }
+      } else if (timerState === 'stopped') {
+        // 计时器停止时释放屏幕常亮
+        await wakeLockManager.releaseWakeLock()
+        setWakeLockActive(false)
+        console.log('屏幕常亮已释放')
+      }
+      // 暂停状态保持当前Wake Lock状态不变
+    }
+
+    manageWakeLock()
+  }, [timerState, wakeLockSupported])
+
+  // 组件卸载时清理Wake Lock
+  useEffect(() => {
+    return () => {
+      wakeLockManager.releaseWakeLock()
+    }
   }, [])
 
   // 计时器逻辑
@@ -82,6 +135,53 @@ const PancakeTimer: React.FC = () => {
       }
     }
   }, [timerState, remainingTime, targetTime])
+
+  // 平滑过渡动画
+  useEffect(() => {
+    let animationFrame: number | null = null
+    
+    if (isTransitioning && transitionStartTime.current) {
+      const animate = () => {
+        const elapsed = Date.now() - transitionStartTime.current!
+        const duration = 500 // 500ms 过渡时间
+        const progress = Math.min(elapsed / duration, 1)
+        
+        // 使用 easeInOutCubic 缓动函数
+        const easeInOutCubic = (t: number) => {
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+        }
+        
+        const easedProgress = easeInOutCubic(progress)
+        const currentAnimatedProgress = startProgress.current + 
+          (endProgress.current - startProgress.current) * easedProgress
+        
+        setAnimatedProgress(currentAnimatedProgress)
+        
+        if (progress < 1) {
+          animationFrame = requestAnimationFrame(animate)
+        } else {
+          setIsTransitioning(false)
+          transitionStartTime.current = null
+        }
+      }
+      
+      animationFrame = requestAnimationFrame(animate)
+    }
+    
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame)
+      }
+    }
+  }, [isTransitioning])
+
+  // 更新正常计时时的动画进度
+  useEffect(() => {
+    if (!isTransitioning && targetTime > 0) {
+      const currentProgress = ((targetTime - remainingTime) / targetTime) * 100
+      setAnimatedProgress(currentProgress)
+    }
+  }, [remainingTime, targetTime, isTransitioning])
 
   // 处理计时完成
   const handleTimerComplete = useCallback(async () => {
@@ -143,14 +243,51 @@ const PancakeTimer: React.FC = () => {
   // 处理设置更新
   const handleSettingsUpdate = (newSettings: PancakeSettings) => {
     setSettings(newSettings)
-    setTargetTime(newSettings.flipInterval)
-    if (timerState === 'stopped') {
-      setRemainingTime(newSettings.flipInterval)
+    const newTargetTime = newSettings.flipInterval
+    const oldTargetTime = targetTime
+    
+    // 如果时间发生了变化，启动过渡动画
+    if (newTargetTime !== oldTargetTime) {
+      // 计算当前和目标进度
+      const currentProgress = oldTargetTime > 0 ? ((oldTargetTime - remainingTime) / oldTargetTime) * 100 : 0
+      
+      let newRemainingTime = remainingTime
+      let targetProgress = 0
+      
+      if (timerState === 'stopped') {
+        // 计时器停止时，直接设置为新的时间
+        newRemainingTime = newTargetTime
+        targetProgress = 0
+      } else if (timerState === 'running' || timerState === 'paused') {
+        // 计时器运行或暂停时，按比例调整剩余时间
+        const progressRatio = oldTargetTime > 0 ? (oldTargetTime - remainingTime) / oldTargetTime : 0
+        newRemainingTime = Math.max(1, Math.round(newTargetTime * (1 - progressRatio)))
+        targetProgress = ((newTargetTime - newRemainingTime) / newTargetTime) * 100
+        
+        console.log(`时间校准：${oldTargetTime}s -> ${newTargetTime}s，剩余时间：${remainingTime}s -> ${newRemainingTime}s，进度：${(progressRatio * 100).toFixed(1)}%`)
+      }
+      
+      // 设置动画起始和结束值
+      startProgress.current = currentProgress
+      endProgress.current = targetProgress
+      setAnimatedProgress(currentProgress)
+      
+      // 启动过渡动画
+      setIsTransitioning(true)
+      transitionStartTime.current = Date.now()
+      
+      // 更新时间
+      setRemainingTime(newRemainingTime)
     }
+    
+    setTargetTime(newTargetTime)
   }
 
   // 处理校准完成
   const handleCalibrationComplete = (calibratedTime: number) => {
+    const oldTargetTime = targetTime
+    const wasRunning = timerState === 'running'
+    
     const newSettings = settings ? { ...settings, flipInterval: calibratedTime } : {
       flipInterval: calibratedTime,
       customPrompt: '该翻面了！',
@@ -159,9 +296,24 @@ const PancakeTimer: React.FC = () => {
       lastUsed: Date.now()
     }
     
+    // 更新设置，这会触发时间和动画的同步更新
     handleSettingsUpdate(newSettings)
     storageManager.saveSettings(newSettings)
-    showAlert(`校准完成！设置为 ${Math.floor(calibratedTime / 60)}分${calibratedTime % 60}秒`)
+    
+    // 提供详细的校准反馈
+    const minutes = Math.floor(calibratedTime / 60)
+    const seconds = calibratedTime % 60
+    const timeText = minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`
+    
+    let alertText = `🎯 校准完成！新的翻面时间：${timeText}`
+    
+    if (wasRunning) {
+      alertText += '\n⏱️ 当前计时已同步调整'
+    }
+    
+    showAlert(alertText)
+    
+    console.log(`校准完成：${oldTargetTime}s -> ${calibratedTime}s，计时器状态：${timerState}`)
   }
 
   // 显示提示消息
@@ -177,8 +329,8 @@ const PancakeTimer: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  // 计算进度百分比
-  const progress = ((targetTime - remainingTime) / targetTime) * 100
+  // 使用动画进度百分比
+  const displayProgress = animatedProgress
 
   if (!settings) {
     return (
@@ -191,13 +343,56 @@ const PancakeTimer: React.FC = () => {
   return (
     <Box className="pancake-timer">
       {/* 标题栏 */}
-      <Paper elevation={2} sx={{ p: 2, mb: 2, textAlign: 'center' }}>
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-          🥞 煎饼侠
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          专业煎饼计时器
-        </Typography>
+      <Paper elevation={2} sx={{ p: 2, mb: 2, position: 'relative' }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+            🥞 煎饼侠
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            专业煎饼计时器
+          </Typography>
+        </Box>
+        
+        {/* 屏幕常亮状态指示器 */}
+        {wakeLockSupported && (
+          <Box 
+            sx={{ 
+              position: 'absolute', 
+              top: 12, 
+              right: 12,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5
+            }}
+          >
+            {wakeLockActive ? (
+              <LightbulbIcon 
+                sx={{ 
+                  fontSize: 20, 
+                  color: 'warning.main',
+                  filter: 'drop-shadow(0 0 4px rgba(255, 193, 7, 0.6))'
+                }} 
+              />
+            ) : (
+              <LightbulbOutlinedIcon 
+                sx={{ 
+                  fontSize: 20, 
+                  color: 'text.disabled'
+                }} 
+              />
+            )}
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                fontSize: '0.7rem',
+                color: wakeLockActive ? 'warning.main' : 'text.disabled',
+                fontWeight: wakeLockActive ? 600 : 400
+              }}
+            >
+              {wakeLockActive ? '常亮' : ''}
+            </Typography>
+          </Box>
+        )}
       </Paper>
 
       {/* 主计时器显示 */}
@@ -205,12 +400,16 @@ const PancakeTimer: React.FC = () => {
         <Box sx={{ position: 'relative', display: 'inline-flex', mb: 2 }}>
           <CircularProgress
             variant="determinate"
-            value={progress}
+            value={displayProgress}
             size={200}
             thickness={4}
             sx={{ 
               color: timerState === 'running' ? 'primary.main' : 'grey.300',
-              transform: 'rotate(-90deg)!'
+              transform: 'rotate(-90deg)!',
+              transition: 'color 0.3s ease-in-out',
+              '& .MuiCircularProgress-circle': {
+                transition: 'none' // 动画由 displayProgress 的平滑变化控制
+              }
             }}
           />
           <Box
@@ -232,7 +431,11 @@ const PancakeTimer: React.FC = () => {
               sx={{ 
                 fontFamily: 'monospace', 
                 fontWeight: 'bold',
-                color: timerState === 'running' ? 'primary.main' : 'text.primary'
+                color: timerState === 'running' ? 'primary.main' : 'text.primary',
+                transition: isTransitioning 
+                  ? 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' 
+                  : 'color 0.3s ease-in-out',
+                transform: isTransitioning ? 'scale(1.05)' : 'scale(1)'
               }}
             >
               {formatTime(remainingTime)}
