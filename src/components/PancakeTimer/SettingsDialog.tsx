@@ -402,37 +402,55 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               </Button>
             </Box>
 
-            <Grid container spacing={1}>
-              {getFilteredPrompts().map((preset, index) => {
-                const category = PROMPT_CATEGORIES.find(cat => cat.id === preset.category)
-                const isSelected = localSettings.customPrompt === preset.value
-                
-                return (
-                  <Grid item xs={12} sm={6} key={index}>
-                    <Chip
-                      label={preset.label}
-                      variant={isSelected ? 'filled' : 'outlined'}
-                      color={isSelected ? 'primary' : (category?.color as any) || 'default'}
-                      onClick={() => selectPresetPrompt(preset.value)}
-                      sx={{ 
-                        width: '100%', 
-                        justifyContent: 'flex-start',
-                        '& .MuiChip-label': { 
-                          padding: '8px 12px',
-                          fontSize: '0.875rem'
-                        },
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          transform: 'scale(1.02)',
-                          boxShadow: 1
-                        }
-                      }}
-                    />
-                  </Grid>
-                )
-              })}
-            </Grid>
+            <Box sx={{ 
+              maxHeight: '300px', 
+              overflowY: 'auto',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
+              p: 1,
+              backgroundColor: 'grey.50'
+            }}>
+              <Grid container spacing={0.5}>
+                {getFilteredPrompts().map((preset, index) => {
+                  const category = PROMPT_CATEGORIES.find(cat => cat.id === preset.category)
+                  const isSelected = localSettings.customPrompt === preset.value
+                  
+                  return (
+                    <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>
+                      <Chip
+                        label={preset.label}
+                        variant={isSelected ? 'filled' : 'outlined'}
+                        color={isSelected ? 'primary' : (category?.color as any) || 'default'}
+                        onClick={() => selectPresetPrompt(preset.value)}
+                        sx={{ 
+                          width: '100%', 
+                          justifyContent: 'flex-start',
+                          minHeight: '28px',
+                          height: 'auto',
+                          '& .MuiChip-label': { 
+                            padding: '4px 8px',
+                            fontSize: '0.75rem',
+                            lineHeight: 1.2,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: '100%'
+                          },
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            transform: 'scale(1.02)',
+                            boxShadow: 1,
+                            zIndex: 1
+                          }
+                        }}
+                      />
+                    </Grid>
+                  )
+                })}
+              </Grid>
+            </Box>
           </Box>
 
           {/* 自定义输入框 */}
