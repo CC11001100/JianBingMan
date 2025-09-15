@@ -1,0 +1,59 @@
+/* PancakeTimer组件样式 */
+.pancake-timer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+}
+
+/* 确保内容不会被系统UI遮挡 */
+@supports (padding: max(0px)) {
+  .pancake-timer {
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}
+
+/* 移动端优化 */
+@media (max-width: 600px) {
+  .pancake-timer {
+    padding: 8px 0;
+  }
+}
+
+/* 防止在计时过程中意外选中文本 */
+.pancake-timer * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* 确保按钮触摸区域足够大 */
+.pancake-timer button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* 提升进度圆环的视觉效果 */
+.pancake-timer .MuiCircularProgress-root {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+/* 悬浮按钮动画 */
+.pancake-timer .MuiFab-root {
+  transition: transform 0.2s ease-in-out;
+}
+
+.pancake-timer .MuiFab-root:active {
+  transform: scale(0.95);
+}
+
+/* 确保在小屏幕上内容不会溢出 */
+@media (max-height: 600px) {
+  .pancake-timer {
+    overflow-y: auto;
+  }
+}
