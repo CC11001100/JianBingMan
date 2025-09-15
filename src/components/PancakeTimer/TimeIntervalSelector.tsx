@@ -23,9 +23,9 @@ interface TimeIntervalSelectorProps {
   value: number
   /** 时间变化回调 */
   onChange: (seconds: number) => void
-  /** 最小值（秒，默认10） */
+  /** 最小值（秒，默认1） */
   min?: number
-  /** 最大值（秒，默认600） */
+  /** 最大值（秒，默认300） */
   max?: number
   /** 标签文本 */
   label?: string
@@ -35,23 +35,23 @@ interface TimeIntervalSelectorProps {
 
 // 预设的常用时间选项（秒）
 const PRESET_TIMES = [
+  { label: '15秒', value: 15 },
   { label: '30秒', value: 30 },
+  { label: '45秒', value: 45 },
   { label: '1分钟', value: 60 },
   { label: '1.5分钟', value: 90 },
   { label: '2分钟', value: 120 },
   { label: '2.5分钟', value: 150 },
   { label: '3分钟', value: 180 },
   { label: '4分钟', value: 240 },
-  { label: '5分钟', value: 300 },
-  { label: '8分钟', value: 480 },
-  { label: '10分钟', value: 600 }
+  { label: '5分钟', value: 300 }
 ]
 
 const TimeIntervalSelector: React.FC<TimeIntervalSelectorProps> = ({
   value,
   onChange,
-  min = 10,
-  max = 600,
+  min = 1,
+  max = 300,
   label = "时间间隔",
   disabled = false
 }) => {
@@ -126,7 +126,7 @@ const TimeIntervalSelector: React.FC<TimeIntervalSelectorProps> = ({
     marks.push({ value: min, label: formatTime(min) })
     
     // 添加关键点标记
-    const keyPoints = [30, 60, 120, 180, 300, 480, 600].filter(point => point >= min && point <= max)
+    const keyPoints = [15, 30, 60, 120, 180, 300].filter(point => point >= min && point <= max)
     keyPoints.forEach(point => {
       if (point !== min && point !== max) {
         marks.push({ value: point, label: formatTime(point) })
@@ -166,7 +166,7 @@ const TimeIntervalSelector: React.FC<TimeIntervalSelectorProps> = ({
           onChange={handleSliderChange}
           min={min}
           max={max}
-          step={5}
+          step={1}
           marks={generateSliderMarks()}
           valueLabelDisplay="auto"
           valueLabelFormat={formatTime}
@@ -201,13 +201,6 @@ const TimeIntervalSelector: React.FC<TimeIntervalSelectorProps> = ({
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
         <ButtonGroup variant="outlined" disabled={disabled}>
           <Button
-            onClick={() => handleQuickAdjust(-10)}
-            startIcon={<RemoveIcon />}
-            disabled={value <= min}
-          >
-            -10秒
-          </Button>
-          <Button
             onClick={() => handleQuickAdjust(-5)}
             startIcon={<RemoveIcon />}
             disabled={value <= min}
@@ -215,18 +208,25 @@ const TimeIntervalSelector: React.FC<TimeIntervalSelectorProps> = ({
             -5秒
           </Button>
           <Button
+            onClick={() => handleQuickAdjust(-1)}
+            startIcon={<RemoveIcon />}
+            disabled={value <= min}
+          >
+            -1秒
+          </Button>
+          <Button
+            onClick={() => handleQuickAdjust(1)}
+            endIcon={<AddIcon />}
+            disabled={value >= max}
+          >
+            +1秒
+          </Button>
+          <Button
             onClick={() => handleQuickAdjust(5)}
             endIcon={<AddIcon />}
             disabled={value >= max}
           >
             +5秒
-          </Button>
-          <Button
-            onClick={() => handleQuickAdjust(10)}
-            endIcon={<AddIcon />}
-            disabled={value >= max}
-          >
-            +10秒
           </Button>
         </ButtonGroup>
       </Box>

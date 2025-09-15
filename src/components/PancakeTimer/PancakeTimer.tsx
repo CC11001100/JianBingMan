@@ -274,7 +274,7 @@ const PancakeTimer: React.FC = () => {
     setIsTransitioning(false)
   }
 
-  // 调整时间（+5秒/-5秒）
+  // 调整时间（+1秒/-1秒或+5秒/-5秒）
   const adjustTime = (delta: number) => {
     if (timerState === 'running') {
       setRemainingTime(prev => {
@@ -286,7 +286,7 @@ const PancakeTimer: React.FC = () => {
         return newRemaining
       })
     } else {
-      const newTime = Math.max(10, targetTime + delta)
+      const newTime = Math.max(1, targetTime + delta)
       setTargetTime(newTime)
       setRemainingTime(newTime)
       // 停止状态下调整时间，重置动画进度为0
@@ -519,7 +519,7 @@ const PancakeTimer: React.FC = () => {
 
         {/* 时间调整按钮 */}
         {timerState !== 'running' && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
             <IconButton 
               onClick={() => adjustTime(-5)} 
               color="primary"
@@ -528,9 +528,25 @@ const PancakeTimer: React.FC = () => {
             >
               <RemoveIcon />
             </IconButton>
+            <IconButton 
+              onClick={() => adjustTime(-1)} 
+              color="primary"
+              size="small"
+              sx={{ bgcolor: 'grey.100' }}
+            >
+              <RemoveIcon />
+            </IconButton>
             <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', minWidth: 80 }}>
               {formatTime(targetTime)}
             </Typography>
+            <IconButton 
+              onClick={() => adjustTime(1)} 
+              color="primary"
+              size="small"
+              sx={{ bgcolor: 'grey.100' }}
+            >
+              <AddIcon />
+            </IconButton>
             <IconButton 
               onClick={() => adjustTime(5)} 
               color="primary"
@@ -552,6 +568,22 @@ const PancakeTimer: React.FC = () => {
               startIcon={<RemoveIcon />}
             >
               -5秒
+            </Button>
+            <Button 
+              variant="outlined" 
+              size="small" 
+              onClick={() => adjustTime(-1)}
+              startIcon={<RemoveIcon />}
+            >
+              -1秒
+            </Button>
+            <Button 
+              variant="outlined" 
+              size="small" 
+              onClick={() => adjustTime(1)}
+              startIcon={<AddIcon />}
+            >
+              +1秒
             </Button>
             <Button 
               variant="outlined" 
