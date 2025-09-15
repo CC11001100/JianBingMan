@@ -1,0 +1,253 @@
+/* 时间间隔选择器样式 */
+.time-interval-selector {
+  width: 100%;
+}
+
+/* 滑块容器样式优化 */
+.time-interval-selector .MuiPaper-root {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.time-interval-selector .MuiPaper-root:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 滑块自定义样式 */
+.time-interval-selector .MuiSlider-root {
+  color: #ff6b35;
+  height: 8px;
+  padding: 16px 0;
+}
+
+.time-interval-selector .MuiSlider-thumb {
+  height: 24px;
+  width: 24px;
+  background-color: #fff;
+  border: 3px solid #ff6b35;
+  box-shadow: 0 3px 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.02);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+}
+
+.time-interval-selector .MuiSlider-thumb:hover,
+.time-interval-selector .MuiSlider-thumb.Mui-focusVisible {
+  box-shadow: 0 3px 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.3), 0 0 0 3px rgba(255, 107, 53, 0.3);
+  transform: scale(1.1);
+}
+
+.time-interval-selector .MuiSlider-thumb.Mui-active {
+  box-shadow: 0 3px 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.3), 0 0 0 5px rgba(255, 107, 53, 0.3);
+  transform: scale(1.2);
+}
+
+.time-interval-selector .MuiSlider-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(45deg, #ff6b35 30%, #ff8f5a 90%);
+}
+
+.time-interval-selector .MuiSlider-rail {
+  height: 6px;
+  border-radius: 3px;
+  background: #e0e0e0;
+  opacity: 0.4;
+}
+
+.time-interval-selector .MuiSlider-mark {
+  background-color: #ff6b35;
+  height: 10px;
+  width: 3px;
+  border-radius: 2px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.time-interval-selector .MuiSlider-mark.MuiSlider-markActive {
+  opacity: 1;
+  background-color: #e55722;
+  transform: scaleY(1.2);
+}
+
+.time-interval-selector .MuiSlider-markLabel {
+  font-size: 0.7rem;
+  color: #666;
+  font-weight: 500;
+  transform: translateY(8px);
+}
+
+.time-interval-selector .MuiSlider-markLabelActive {
+  color: #ff6b35;
+  font-weight: 600;
+}
+
+.time-interval-selector .MuiSlider-valueLabel {
+  line-height: 1.2;
+  font-size: 0.875rem;
+  background: #ff6b35;
+  border-radius: 8px;
+  padding: 6px 12px;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.time-interval-selector .MuiSlider-valueLabel:before {
+  border-top: 8px solid #ff6b35;
+}
+
+/* 按钮组样式优化 */
+.time-interval-selector .MuiButtonGroup-root {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.time-interval-selector .MuiButtonGroup-root .MuiButton-root {
+  border-color: #ff6b35;
+  color: #ff6b35;
+  font-weight: 500;
+  min-width: 80px;
+  transition: all 0.2s ease;
+}
+
+.time-interval-selector .MuiButtonGroup-root .MuiButton-root:hover {
+  background-color: rgba(255, 107, 53, 0.04);
+  border-color: #ff6b35;
+  transform: translateY(-1px);
+}
+
+.time-interval-selector .MuiButtonGroup-root .MuiButton-root:active {
+  background-color: rgba(255, 107, 53, 0.12);
+  transform: translateY(0);
+}
+
+.time-interval-selector .MuiButtonGroup-root .MuiButton-root:disabled {
+  opacity: 0.5;
+  transform: none;
+}
+
+/* 输入框样式优化 */
+.time-interval-selector .MuiTextField-root {
+  transition: all 0.3s ease;
+}
+
+.time-interval-selector .MuiTextField-root .MuiOutlinedInput-root {
+  border-radius: 8px;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+.time-interval-selector .MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #ff6b35;
+}
+
+.time-interval-selector .MuiTextField-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #ff6b35;
+  border-width: 2px;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+}
+
+.time-interval-selector .MuiTextField-root .MuiInputLabel-root.Mui-focused {
+  color: #ff6b35;
+}
+
+/* 重置按钮样式 */
+.time-interval-selector .MuiIconButton-root {
+  color: #ff6b35;
+  transition: all 0.2s ease;
+}
+
+.time-interval-selector .MuiIconButton-root:hover {
+  background-color: rgba(255, 107, 53, 0.04);
+  transform: scale(1.1);
+}
+
+/* 预设时间芯片样式 */
+.time-interval-selector .MuiChip-root {
+  transition: all 0.2s ease;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.time-interval-selector .MuiChip-root:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.time-interval-selector .MuiChip-root.MuiChip-filled {
+  background: linear-gradient(45deg, #ff6b35 30%, #ff8f5a 90%);
+  color: white;
+  font-weight: 600;
+}
+
+.time-interval-selector .MuiChip-root.MuiChip-outlined {
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+.time-interval-selector .MuiChip-root.MuiChip-outlined:hover {
+  background-color: rgba(255, 107, 53, 0.04);
+  border-color: #e55722;
+}
+
+/* 当前值显示芯片特殊样式 */
+.time-interval-selector .MuiChip-filled[data-current-value] {
+  background: linear-gradient(45deg, #4caf50 30%, #80e27e 90%);
+  box-shadow: 0 3px 5px 2px rgba(76, 175, 80, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 3px 5px 2px rgba(76, 175, 80, 0.3);
+  }
+  50% {
+    box-shadow: 0 3px 5px 2px rgba(76, 175, 80, 0.5);
+  }
+  100% {
+    box-shadow: 0 3px 5px 2px rgba(76, 175, 80, 0.3);
+  }
+}
+
+/* 容器间距优化 */
+.time-interval-selector > .MuiBox-root {
+  margin-bottom: 1.5rem;
+}
+
+.time-interval-selector > .MuiBox-root:last-child {
+  margin-bottom: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+  .time-interval-selector .MuiButtonGroup-root {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .time-interval-selector .MuiButtonGroup-root .MuiButton-root {
+    min-width: 70px;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .time-interval-selector .MuiSlider-markLabel {
+    font-size: 0.6rem;
+  }
+  
+  .time-interval-selector .MuiTextField-root {
+    width: 70px;
+  }
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .time-interval-selector .MuiPaper-root {
+    background-color: #424242;
+  }
+  
+  .time-interval-selector .MuiSlider-rail {
+    background: #616161;
+  }
+  
+  .time-interval-selector .MuiTextField-root .MuiOutlinedInput-root {
+    background-color: #424242;
+  }
+}

@@ -31,6 +31,7 @@ import { storageManager, type PancakeSettings } from '../../utils/storage'
 import { speechManager } from '../../utils/speechSynthesis'
 import { soundEffectsManager } from '../../utils/soundEffects'
 import VoiceRecorder from './VoiceRecorder'
+import TimeIntervalSelector from './TimeIntervalSelector'
 
 interface SettingsDialogProps {
   open: boolean
@@ -174,16 +175,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
   }, [settings])
 
   // 更新翻面时间
-  const updateFlipInterval = (minutes: number, seconds: number) => {
-    const totalSeconds = minutes * 60 + seconds
-    setLocalSettings(prev => ({ ...prev, flipInterval: totalSeconds }))
-  }
-
-  // 获取分钟和秒数
-  const getMinutesSeconds = () => {
-    const minutes = Math.floor(localSettings.flipInterval / 60)
-    const seconds = localSettings.flipInterval % 60
-    return { minutes, seconds }
+  const updateFlipInterval = (seconds: number) => {
+    setLocalSettings(prev => ({ ...prev, flipInterval: seconds }))
   }
 
   // 选择预设提示音
@@ -307,8 +300,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     // setCustomVoiceBlob(null)
   }
 
-  const { minutes, seconds } = getMinutesSeconds()
-
   return (
     <Dialog 
       open={open} 
@@ -335,33 +326,13 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
 
         {/* 翻面时间设置 */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
-            🕐 翻面时间间隔
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <TextField
-              label="分钟"
-              type="number"
-              value={minutes}
-              onChange={(e) => updateFlipInterval(parseInt(e.target.value) || 0, seconds)}
-              inputProps={{ min: 0, max: 59 }}
-              size="small"
-              sx={{ width: 100 }}
-            />
-            <Typography>:</Typography>
-            <TextField
-              label="秒钟"
-              type="number"
-              value={seconds}
-              onChange={(e) => updateFlipInterval(minutes, parseInt(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 59 }}
-              size="small"
-              sx={{ width: 100 }}
-            />
-          </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            当前设置：{Math.floor(localSettings.flipInterval / 60)}分{localSettings.flipInterval % 60}秒
-          </Typography>
+          <TimeIntervalSelector
+            value={localSettings.flipInterval}
+            onChange={updateFlipInterval}
+            min={10}
+            max={600}
+            label="翻面时间间隔"
+          />
         </Box>
 
         <Divider sx={{ my: 2 }} />
