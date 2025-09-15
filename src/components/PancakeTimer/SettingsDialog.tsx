@@ -403,8 +403,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             </Box>
 
             <Box sx={{ 
-              maxHeight: '300px', 
-              overflowY: 'auto',
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 1,
@@ -417,7 +415,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
                   const isSelected = localSettings.customPrompt === preset.value
                   
                   return (
-                    <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>
+                    <Grid item xs={6} sm={4} md={3} lg={2.4} xl={2} key={index}>
                       <Chip
                         label={preset.label}
                         variant={isSelected ? 'filled' : 'outlined'}
