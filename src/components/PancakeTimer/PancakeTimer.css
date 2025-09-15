@@ -57,3 +57,133 @@
     overflow-y: auto;
   }
 }
+
+/* 桌面端鼠标悬停效果 */
+@media (hover: hover) and (pointer: fine) {
+  /* 主控制按钮悬停效果 */
+  .pancake-timer .MuiButton-contained:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .pancake-timer .MuiButton-outlined:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* 图标按钮悬停效果 */
+  .pancake-timer .MuiIconButton-root:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 107, 53, 0.08);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* 时间调整按钮悬停效果 */
+  .pancake-timer .MuiIconButton-root[aria-label*="调整"]:hover {
+    background-color: rgba(255, 107, 53, 0.12);
+    transform: scale(1.15);
+  }
+  
+  /* 悬浮重置按钮悬停效果 */
+  .pancake-timer .MuiFab-root:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+  }
+  
+  /* Paper容器悬停效果 */
+  .pancake-timer .MuiPaper-root:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transition: box-shadow 0.3s ease-in-out;
+  }
+  
+  /* 进度圆环悬停效果 */
+  .pancake-timer .MuiCircularProgress-root:hover {
+    filter: drop-shadow(0 4px 8px rgba(255, 107, 53, 0.3));
+    transition: filter 0.3s ease-in-out;
+  }
+  
+  /* 屏幕常亮指示器悬停效果 */
+  .pancake-timer .MuiBox-root:has(.MuiSvgIcon-root):hover .MuiSvgIcon-root {
+    transform: scale(1.2);
+    transition: transform 0.2s ease-in-out;
+  }
+}
+
+/* 桌面端右键菜单样式 */
+.pancake-timer-context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  min-width: 180px;
+  z-index: 1500;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.pancake-timer-context-menu-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pancake-timer-context-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.pancake-timer-context-menu-item:active {
+  background-color: #e0e0e0;
+}
+
+.pancake-timer-context-menu-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 4px 0;
+}
+
+/* 键盘操作提示 */
+.pancake-timer-keyboard-hint {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: monospace;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+  max-width: 300px;
+  z-index: 1300;
+}
+
+.pancake-timer-keyboard-hint.show {
+  opacity: 1;
+}
+
+/* 桌面端焦点样式 */
+@media (hover: hover) and (pointer: fine) {
+  .pancake-timer button:focus-visible {
+    outline: 2px solid #ff6b35;
+    outline-offset: 2px;
+  }
+  
+  .pancake-timer .MuiIconButton-root:focus-visible {
+    outline: 2px solid #ff6b35;
+    outline-offset: 2px;
+    background-color: rgba(255, 107, 53, 0.08);
+  }
+}

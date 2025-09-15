@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數據遷移和版本兼容性測試</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 3px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+        #output { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>煎餅俠 - 數據遷移和版本兼容性測試</h1>
+    
+    <div class="test-section">
+        <h2>數據庫版本測試</h2>
+        <button onclick="testDatabaseVersions()">測試數據庫版本升級</button>
+        <button onclick="testBackwardCompatibility()">測試向後兼容性</button>
+        <button onclick="clearAllData()">清空所有數據</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>數據完整性測試</h2>
+        <button onclick="testDataIntegrity()">測試數據完整性</button>
+        <button onclick="testSettingsMigration()">測試設置遷移</button>
+        <button onclick="testCustomVoiceMigration()">測試自定義語音遷移</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>版本兼容性測試</h2>
+        <button onclick="simulateOldVersion()">模擬舊版本數據</button>
+        <button onclick="testUpgradeToVersion2()">測試升級到版本2</button>
+        <button onclick="verifyNewFeatures()">驗證新功能兼容性</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>測試結果</h2>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // 導入存儲管理器 - 在實際環境中需要正確引用
+        let StorageManager;
+        
+        // 日誌函數
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // 模擬版本1的數據庫結構
+        async function createVersion1Database() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('PancakeTimerDB', 1);
+                
+                request.onerror = () => reject(new Error('Failed to create v1 database'));
+                
+                request.onsuccess = () => {
+                    const db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    
+                    // 版本1只有設置和校準存儲
+                    if (!db.objectStoreNames.contains('settings')) {
+                        db.createObjectStore('settings', { keyPath: 'id' });
+                    }
+                    
+                    if (!db.objectStoreNames.contains('calibration')) {
+                        db.createObjectStore('calibration', { keyPath: 'id' });
+                    }
+                    
+                    // 版本1沒有history和custom_voices
+                    log('Created version 1 database structure', 'info');
+                };
+            });
+        }
+
+        // 添加版本1的測試數據
+        async function addVersion1TestData(db) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['settings', 'calibration'], 'readwrite');
+                
+                // 添加舊版本設置（缺少一些新字段）
+                const settingsStore = transaction.objectStore('settings');
+                const oldSettings = {
+                    id: 'pancake_settings',
+                    data: {
+                        flipInterval: 30,
+                        customPrompt: '該翻面了！',
+                        volume: 0.8,
+                        vibrationEnabled: true,
+                        speechEnabled: true,
+                        lastUsed: Date.now() - 86400000 // 一天前
+                        // 缺少新版本的字段：speechRate, speechPitch, voiceType, soundEffectsEnabled, soundEffectType, customVoiceId
+                    }
+                };
+                
+                settingsStore.put(oldSettings);
+                
+                // 添加校準數據
+                const calibrationStore = transaction.objectStore('calibration');
+                const calibrationData = {
+                    id: 'calibration_data',
+                    data: {
+                        calibratedTime: 25,
+                        calibratedAt: Date.now() - 3600000 // 一小時前
+                    }
+                };
+                
+                calibrationStore.put(calibrationData);
+                
+                transaction.oncomplete = () => {
+                    log('Added version 1 test data', 'success');
+                    resolve();
+                };
+                
+                transaction.onerror = () => {
+                    reject(new Error('Failed to add test data'));
+                };
+            });
+        }
+
+        // 測試數據庫版本升級
+        async function testDatabaseVersions() {
+            try {
+                log('開始測試數據庫版本升級...', 'info');
+                
+                // 1. 清空現有數據庫
+                await clearDatabase();
+                
+                // 2. 創建版本1數據庫
+                const v1db = await createVersion1Database();
+                await addVersion1TestData(v1db);
+                v1db.close();
+                
+                log('版本1數據庫創建完成', 'success');
+                
+                // 3. 嘗試升級到版本2
+                const upgradeResult = await testUpgradeProcess();
+                
+                if (upgradeResult) {
+                    log('數據庫版本升級測試通過', 'success');
+                } else {
+                    log('數據庫版本升級測試失敗', 'error');
+                }
+                
+            } catch (error) {
+                log(`版本升級測試錯誤: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試升級過程
+        async function testUpgradeProcess() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('PancakeTimerDB', 2);
+                
+                request.onerror = () => {
+                    log('升級過程失敗', 'error');
+                    resolve(false);
+                };
+                
+                request.onsuccess = () => {
+                    const db = request.result;
+                    
+                    // 檢查所有存儲是否存在
+                    const expectedStores = ['settings', 'calibration', 'history', 'custom_voices'];
+                    const actualStores = Array.from(db.objectStoreNames);
+                    
+                    const allStoresExist = expectedStores.every(store => actualStores.includes(store));
+                    
+                    if (allStoresExist) {
+                        log('所有必需的存儲都已創建', 'success');
+                        db.close();
+                        resolve(true);
+                    } else {
+                        log(`缺少存儲: ${expectedStores.filter(s => !actualStores.includes(s)).join(', ')}`, 'error');
+                        db.close();
+                        resolve(false);
+                    }
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    
+                    log('觸發升級事件', 'info');
+                    
+                    // 模擬升級邏輯
+                    if (!db.objectStoreNames.contains('history')) {
+                        const historyStore = db.createObjectStore('history', { 
+                            keyPath: 'id', 
+                            autoIncrement: true 
+                        });
+                        historyStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        log('創建歷史記錄存儲', 'info');
+                    }
+
+                    if (!db.objectStoreNames.contains('custom_voices')) {
+                        const voicesStore = db.createObjectStore('custom_voices', { 
+                            keyPath: 'id' 
+                        });
+                        voicesStore.createIndex('createdAt', 'createdAt', { unique: false });
+                        voicesStore.createIndex('lastUsed', 'lastUsed', { unique: false });
+                        log('創建自定義語音存儲', 'info');
+                    }
+                };
+            });
+        }
+
+        // 測試向後兼容性
+        async function testBackwardCompatibility() {
+            try {
+                log('開始測試向後兼容性...', 'info');
+                
+                const db = await openDatabase();
+                
+                // 測試讀取可能不完整的舊設置
+                const transaction = db.transaction(['settings'], 'readonly');
+                const store = transaction.objectStore('settings');
+                const request = store.get('pancake_settings');
+                
+                request.onsuccess = () => {
+                    const settings = request.result;
+                    if (settings && settings.data) {
+                        // 檢查必需字段是否存在
+                        const requiredFields = ['flipInterval', 'customPrompt', 'volume'];
+                        const missingFields = requiredFields.filter(field => !(field in settings.data));
+                        
+                        if (missingFields.length === 0) {
+                            log('基本設置字段兼容性測試通過', 'success');
+                        } else {
+                            log(`缺少必需字段: ${missingFields.join(', ')}`, 'error');
+                        }
+                        
+                        // 檢查新字段的默認值處理
+                        const newFields = ['speechRate', 'speechPitch', 'voiceType', 'soundEffectsEnabled'];
+                        const hasNewFields = newFields.some(field => field in settings.data);
+                        
+                        if (hasNewFields) {
+                            log('新字段已正確添加', 'success');
+                        } else {
+                            log('需要為舊數據添加默認的新字段', 'info');
+                        }
+                    } else {
+                        log('未找到設置數據', 'error');
+                    }
+                };
+                
+                db.close();
+                
+            } catch (error) {
+                log(`向後兼容性測試錯誤: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試數據完整性
+        async function testDataIntegrity() {
+            try {
+                log('開始測試數據完整性...', 'info');
+                
+                const db = await openDatabase();
+                
+                // 檢查所有存儲的完整性
+                const stores = ['settings', 'calibration', 'history', 'custom_voices'];
+                const transaction = db.transaction(stores, 'readonly');
+                
+                for (const storeName of stores) {
+                    const store = transaction.objectStore(storeName);
+                    const countRequest = store.count();
+                    
+                    countRequest.onsuccess = () => {
+                        log(`${storeName} 存儲包含 ${countRequest.result} 條記錄`, 'info');
+                    };
+                }
+                
+                db.close();
+                log('數據完整性檢查完成', 'success');
+                
+            } catch (error) {
+                log(`數據完整性測試錯誤: ${error.message}`, 'error');
+            }
+        }
+
+        // 清空數據庫
+        async function clearDatabase() {
+            return new Promise((resolve) => {
+                const deleteRequest = indexedDB.deleteDatabase('PancakeTimerDB');
+                deleteRequest.onsuccess = () => {
+                    log('數據庫已清空', 'info');
+                    resolve();
+                };
+                deleteRequest.onerror = () => {
+                    log('清空數據庫失敗', 'error');
+                    resolve();
+                };
+            });
+        }
+
+        // 打開數據庫
+        async function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('PancakeTimerDB', 2);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(new Error('Failed to open database'));
+            });
+        }
+
+        // 清空所有數據
+        async function clearAllData() {
+            await clearDatabase();
+            log('所有數據已清空', 'success');
+        }
+
+        // 其他測試函數的實現...
+        async function testSettingsMigration() {
+            log('設置遷移測試功能待實現', 'info');
+        }
+
+        async function testCustomVoiceMigration() {
+            log('自定義語音遷移測試功能待實現', 'info');
+        }
+
+        async function simulateOldVersion() {
+            await testDatabaseVersions();
+        }
+
+        async function testUpgradeToVersion2() {
+            await testUpgradeProcess();
+        }
+
+        async function verifyNewFeatures() {
+            log('新功能兼容性驗證功能待實現', 'info');
+        }
+
+        // 頁面加載時的初始化
+        window.onload = function() {
+            log('數據遷移和版本兼容性測試頁面已加載', 'success');
+        };
+    </script>
+</body>
+</html>

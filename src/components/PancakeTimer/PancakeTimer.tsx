@@ -56,6 +56,11 @@ const PancakeTimer: React.FC = () => {
   const transitionStartTime = useRef<number | null>(null)
   const startProgress = useRef<number>(0)
   const endProgress = useRef<number>(0)
+  
+  // 桌面端交互状态
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const [showKeyboardHint, setShowKeyboardHint] = useState(false)
+  const keyboardHintTimer = useRef<number | null>(null)
 
   // 初始化Wake Lock支持检测
   useEffect(() => {
@@ -113,6 +118,164 @@ const PancakeTimer: React.FC = () => {
       wakeLockManager.releaseWakeLock()
     }
   }, [])
+
+  // 桌面端键盘快捷键支持
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // 如果焦点在输入框或对话框打开时，不处理快捷键
+      const target = event.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return
+      }
+      
+      // 如果对话框打开，只处理ESC键
+      if (settingsOpen || calibrationOpen) {
+        if (event.key === 'Escape') {
+          event.preventDefault()
+          if (settingsOpen) setSettingsOpen(false)
+          if (calibrationOpen) setCalibrationOpen(false)
+          showAlert('对话框已关闭')
+        }
+        return
+      }
+
+      // 防止默认行为（如页面滚动）
+      switch (event.key) {
+        case ' ':
+        case 'ArrowUp':
+        case 'ArrowDown':
+        case 'ArrowLeft':
+        case 'ArrowRight':
+          event.preventDefault()
+          break
+      }
+
+      // 处理快捷键
+      switch (event.key) {
+        case ' ': // 空格键：开始/暂停计时
+          toggleTimer()
+          showAlert(timerState === 'running' ? '计时器已暂停' : '计时器已开始')
+          break
+          
+        case 'r':
+        case 'R': // R键：重置计时器
+          resetTimer()
+          showAlert('计时器已重置')
+          break
+          
+        case 'ArrowUp': // 上箭头：+5秒
+          adjustTime(5)
+          showAlert(`时间调整：+5秒`)
+          break
+          
+        case 'ArrowDown': // 下箭头：-5秒
+          adjustTime(-5)
+          showAlert(`时间调整：-5秒`)
+          break
+          
+        case 'ArrowRight': // 右箭头：+1秒
+          adjustTime(1)
+          showAlert(`时间调整：+1秒`)
+          break
+          
+        case 'ArrowLeft': // 左箭头：-1秒
+          adjustTime(-1)
+          showAlert(`时间调整：-1秒`)
+          break
+          
+        case 's':
+        case 'S': // S键：打开设置
+          setSettingsOpen(true)
+          showAlert('打开设置面板')
+          break
+          
+        case 'c':
+        case 'C': // C键：打开校准
+          setCalibrationOpen(true)
+          showAlert('打开校准面板')
+          break
+          
+        case '?': // ?键：显示快捷键帮助
+          showAlert('快捷键：空格(开始/暂停) R(重置) ↑↓←→(调整时间) S(设置) C(校准) ESC(关闭)')
+          break
+      }
+    }
+
+    // 添加事件监听器
+    document.addEventListener('keydown', handleKeyDown)
+    
+    // 清理事件监听器
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [timerState, settingsOpen, calibrationOpen, targetTime])
+
+  // 桌面端右键菜单功能
+  useEffect(() => {
+    const handleContextMenu = (event: MouseEvent) => {
+      // 只在桌面端显示右键菜单
+      if (window.innerWidth < 768) return
+      
+      event.preventDefault()
+      setContextMenu({ x: event.clientX, y: event.clientY })
+    }
+
+    const handleClick = () => {
+      setContextMenu(null)
+    }
+
+    document.addEventListener('contextmenu', handleContextMenu)
+    document.addEventListener('click', handleClick)
+    
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu)
+      document.removeEventListener('click', handleClick)
+    }
+  }, [])
+
+  // 显示键盘提示
+  const showKeyboardHints = () => {
+    setShowKeyboardHint(true)
+    if (keyboardHintTimer.current) {
+      clearTimeout(keyboardHintTimer.current)
+    }
+    keyboardHintTimer.current = setTimeout(() => {
+      setShowKeyboardHint(false)
+    }, 5000)
+  }
+
+  // 右键菜单项处理
+  const handleContextMenuAction = (action: string) => {
+    setContextMenu(null)
+    
+    switch (action) {
+      case 'toggle':
+        toggleTimer()
+        showAlert(timerState === 'running' ? '计时器已暂停' : '计时器已开始')
+        break
+      case 'reset':
+        resetTimer()
+        showAlert('计时器已重置')
+        break
+      case 'settings':
+        setSettingsOpen(true)
+        break
+      case 'calibration':
+        setCalibrationOpen(true)
+        break
+      case 'shortcuts':
+        showKeyboardHints()
+        break
+      case 'add5':
+        adjustTime(5)
+        showAlert('时间+5秒')
+        break
+      case 'sub5':
+        adjustTime(-5)
+        showAlert('时间-5秒')
+        break
+    }
+  }
 
   // 计时器逻辑
   useEffect(() => {
@@ -687,6 +850,78 @@ const PancakeTimer: React.FC = () => {
           {alertMessage}
         </Alert>
       </Snackbar>
+
+      {/* 桌面端右键菜单 */}
+      {contextMenu && (
+        <div
+          className="pancake-timer-context-menu"
+          style={{
+            left: Math.min(contextMenu.x, window.innerWidth - 200),
+            top: Math.min(contextMenu.y, window.innerHeight - 300)
+          }}
+        >
+          <button
+            className="pancake-timer-context-menu-item"
+            onClick={() => handleContextMenuAction('toggle')}
+          >
+            {timerState === 'running' ? <PauseIcon fontSize="small" /> : <PlayIcon fontSize="small" />}
+            {timerState === 'running' ? '暂停计时' : '开始计时'}
+          </button>
+          <button
+            className="pancake-timer-context-menu-item"
+            onClick={() => handleContextMenuAction('reset')}
+          >
+            <RefreshIcon fontSize="small" />
+            重置计时器
+          </button>
+          <div className="pancake-timer-context-menu-divider" />
+          <button
+            className="pancake-timer-context-menu-item"
+            onClick={() => handleContextMenuAction('add5')}
+          >
+            <AddIcon fontSize="small" />
+            时间 +5秒
+          </button>
+          <button
+            className="pancake-timer-context-menu-item"
+            onClick={() => handleContextMenuAction('sub5')}
+          >
+            <RemoveIcon fontSize="small" />
+            时间 -5秒
+          </button>
+          <div className="pancake-timer-context-menu-divider" />
+          <button
+            className="pancake-timer-context-menu-item"
+            onClick={() => handleContextMenuAction('settings')}
+          >
+            <SettingsIcon fontSize="small" />
+            打开设置
+          </button>
+          <button
+            className="pancake-timer-context-menu-item"
+            onClick={() => handleContextMenuAction('calibration')}
+          >
+            <TimerIcon fontSize="small" />
+            时间校准
+          </button>
+          <div className="pancake-timer-context-menu-divider" />
+          <button
+            className="pancake-timer-context-menu-item"
+            onClick={() => handleContextMenuAction('shortcuts')}
+          >
+            ⌨️ 查看快捷键
+          </button>
+        </div>
+      )}
+
+      {/* 键盘快捷键提示 */}
+      <div className={`pancake-timer-keyboard-hint ${showKeyboardHint ? 'show' : ''}`}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>键盘快捷键：</div>
+        <div>空格: 开始/暂停 | R: 重置</div>
+        <div>↑↓: ±5秒 | ←→: ±1秒</div>
+        <div>S: 设置 | C: 校准 | ESC: 关闭</div>
+        <div>?: 显示此帮助</div>
+      </div>
     </Box>
   )
 }
