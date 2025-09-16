@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>語音兼容性測試 - 煎餅俠</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .test-button:hover {
+            background: #e55722;
+        }
+        .test-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            background-color: #e8f5e8;
+            border-color: #4caf50;
+        }
+        .error {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+        .warning {
+            background-color: #fff3e0;
+            border-color: #ff9800;
+        }
+        .info {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff6b35;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        .test-item .icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .test-details {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .recommendations {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .recommendations h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .recommendations ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .recommendations li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥞 煎餅俠 - 語音兼容性測試</h1>
+            <p>檢測當前瀏覽器和設備對語音功能的支持程度</p>
+        </div>
+
+        <button id="testButton" class="test-button">開始兼容性測試</button>
+        
+        <div id="loadingSection" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>正在進行兼容性測試，請稍候...</p>
+        </div>
+        
+        <div id="resultSection" style="display: none;">
+            <!-- 測試結果將在這裡顯示 -->
+        </div>
+    </div>
+
+    <script>
+        // 瀏覽器檢測
+        function getBrowserInfo() {
+            const userAgent = navigator.userAgent;
+            let name = 'Unknown';
+            let version = 'Unknown';
+            let engine = 'Unknown';
+            
+            if (userAgent.includes('Chrome')) {
+                name = 'Chrome';
+                const match = userAgent.match(/Chrome\/([0-9.]+)/);
+                version = match ? match[1] : 'Unknown';
+                engine = 'Blink';
+            } else if (userAgent.includes('Firefox')) {
+                name = 'Firefox';
+                const match = userAgent.match(/Firefox\/([0-9.]+)/);
+                version = match ? match[1] : 'Unknown';
+                engine = 'Gecko';
+            } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+                name = 'Safari';
+                const match = userAgent.match(/Version\/([0-9.]+)/);
+                version = match ? match[1] : 'Unknown';
+                engine = 'WebKit';
+            } else if (userAgent.includes('Edge')) {
+                name = 'Edge';
+                const match = userAgent.match(/Edge\/([0-9.]+)/);
+                version = match ? match[1] : 'Unknown';
+                engine = 'EdgeHTML';
+            } else if (userAgent.includes('Edg')) {
+                name = 'Edge (Chromium)';
+                const match = userAgent.match(/Edg\/([0-9.]+)/);
+                version = match ? match[1] : 'Unknown';
+                engine = 'Blink';
+            }
+
+            let os = 'Unknown';
+            if (userAgent.includes('Windows')) os = 'Windows';
+            else if (userAgent.includes('Mac')) os = 'macOS';
+            else if (userAgent.includes('Linux')) os = 'Linux';
+            else if (userAgent.includes('Android')) os = 'Android';
+            else if (userAgent.includes('iOS')) os = 'iOS';
+
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+
+            return { name, version, engine, os, isMobile };
+        }
+
+        // Web Speech API 測試
+        async function testWebSpeechApi() {
+            try {
+                const supported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+                
+                if (!supported) {
+                    return {
+                        success: false,
+                        message: 'Web Speech API 不支持',
+                        details: {
+                            speechSynthesis: 'speechSynthesis' in window,
+                            speechSynthesisUtterance: 'SpeechSynthesisUtterance' in window
+                        }
+                    };
+                }
+
+                // 測試語音合成功能
+                return new Promise((resolve) => {
+                    const utterance = new SpeechSynthesisUtterance('測試');
+                    utterance.volume = 0; // 靜音測試
+                    
+                    const timeout = setTimeout(() => {
+                        resolve({
+                            success: false,
+                            message: 'Web Speech API 響應超時',
+                            error: '語音合成初始化超過5秒'
+                        });
+                    }, 5000);
+
+                    utterance.onstart = () => {
+                        clearTimeout(timeout);
+                        speechSynthesis.cancel();
+                        resolve({
+                            success: true,
+                            message: 'Web Speech API 完全支持',
+                            details: {
+                                voicesCount: speechSynthesis.getVoices().length,
+                                speaking: speechSynthesis.speaking,
+                                pending: speechSynthesis.pending,
+                                paused: speechSynthesis.paused
+                            }
+                        });
+                    };
+
+                    utterance.onerror = (event) => {
+                        clearTimeout(timeout);
+                        resolve({
+                            success: false,
+                            message: 'Web Speech API 錯誤',
+                            error: event.error
+                        });
+                    };
+
+                    speechSynthesis.speak(utterance);
+                });
+            } catch (error) {
+                return {
+                    success: false,
+                    message: 'Web Speech API 測試失敗',
+                    error: error.message
+                };
+            }
+        }
+
+        // MediaRecorder API 測試
+        async function testMediaRecorderApi() {
+            try {
+                const supported = 'MediaRecorder' in window && 'mediaDevices' in navigator;
+
+                if (!supported) {
+                    return {
+                        success: false,
+                        message: 'MediaRecorder API 不支持',
+                        details: {
+                            mediaRecorder: 'MediaRecorder' in window,
+                            mediaDevices: 'mediaDevices' in navigator,
+                            getUserMedia: navigator.mediaDevices && 'getUserMedia' in navigator.mediaDevices
+                        }
+                    };
+                }
+
+                const supportedTypes = [
+                    'audio/webm',
+                    'audio/webm;codecs=opus',
+                    'audio/ogg',
+                    'audio/mp4',
+                    'audio/wav'
+                ].filter(type => MediaRecorder.isTypeSupported(type));
+
+                if (supportedTypes.length === 0) {
+                    return {
+                        success: false,
+                        message: 'MediaRecorder API 不支持任何音頻格式',
+                        details: { supportedTypes }
+                    };
+                }
+
+                return {
+                    success: true,
+                    message: 'MediaRecorder API 完全支持',
+                    details: {
+                        supportedTypes,
+                        preferredType: supportedTypes[0]
+                    }
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    message: 'MediaRecorder API 測試失敗',
+                    error: error.message
+                };
+            }
+        }
+
+        // Web Audio API 測試
+        async function testWebAudioApi() {
+            try {
+                const supported = 'AudioContext' in window || 'webkitAudioContext' in window;
+
+                if (!supported) {
+                    return {
+                        success: false,
+                        message: 'Web Audio API 不支持'
+                    };
+                }
+
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContextClass();
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                gainNode.gain.value = 0;
+                oscillator.frequency.value = 440;
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+
+                const result = {
+                    success: true,
+                    message: 'Web Audio API 完全支持',
+                    details: {
+                        sampleRate: audioContext.sampleRate,
+                        state: audioContext.state,
+                        maxChannelCount: audioContext.destination.maxChannelCount
+                    }
+                };
+
+                await audioContext.close();
+                return result;
+            } catch (error) {
+                return {
+                    success: false,
+                    message: 'Web Audio API 測試失敗',
+                    error: error.message
+                };
+            }
+        }
+
+        // 語音列表測試
+        async function testVoicesAndLanguage() {
+            try {
+                if (!('speechSynthesis' in window)) {
+                    return {
+                        success: false,
+                        message: '無法測試語音列表：Speech Synthesis 不支持'
+                    };
+                }
+
+                let voices = speechSynthesis.getVoices();
+                
+                if (voices.length === 0) {
+                    await new Promise((resolve) => {
+                        const timeout = setTimeout(resolve, 2000);
+                        speechSynthesis.onvoiceschanged = () => {
+                            clearTimeout(timeout);
+                            resolve();
+                        };
+                    });
+                }
+
+                voices = speechSynthesis.getVoices();
+                
+                const chineseVoices = voices.filter(voice => 
+                    voice.lang.includes('zh') || 
+                    voice.lang.includes('cmn') ||
+                    voice.name.includes('Chinese') ||
+                    voice.name.includes('中文')
+                );
+
+                const languageSupport = {
+                    totalVoices: voices.length,
+                    chineseVoices: chineseVoices.length,
+                    languages: [...new Set(voices.map(v => v.lang))],
+                    localVoices: voices.filter(v => v.localService).length,
+                    remoteVoices: voices.filter(v => !v.localService).length
+                };
+
+                if (voices.length === 0) {
+                    return {
+                        success: false,
+                        message: '沒有可用的語音',
+                        details: languageSupport
+                    };
+                }
+
+                return {
+                    success: true,
+                    message: `找到 ${voices.length} 個語音，其中 ${chineseVoices.length} 個中文語音`,
+                    details: languageSupport
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    message: '語音列表測試失敗',
+                    error: error.message
+                };
+            }
+        }
+
+        // 備用機制測試
+        async function testFallbackMechanisms() {
+            try {
+                const fallbackTests = [];
+
+                const vibrationSupported = 'vibrate' in navigator;
+                fallbackTests.push({
+                    mechanism: '振動提醒',
+                    supported: vibrationSupported,
+                    description: vibrationSupported ? '支持振動API' : '不支持振動API'
+                });
+
+                const notificationSupported = 'Notification' in window;
+                fallbackTests.push({
+                    mechanism: '桌面通知',
+                    supported: notificationSupported,
+                    description: notificationSupported ? '支持桌面通知' : '不支持桌面通知'
+                });
+
+                const visibilitySupported = 'visibilityState' in document;
+                fallbackTests.push({
+                    mechanism: '頁面可見性檢測',
+                    supported: visibilitySupported,
+                    description: visibilitySupported ? '支持頁面可見性API' : '不支持頁面可見性API'
+                });
+
+                const wakeLockSupported = 'wakeLock' in navigator;
+                fallbackTests.push({
+                    mechanism: '屏幕常亮',
+                    supported: wakeLockSupported,
+                    description: wakeLockSupported ? '支持Wake Lock API' : '不支持Wake Lock API'
+                });
+
+                const supportedCount = fallbackTests.filter(test => test.supported).length;
+
+                return {
+                    success: supportedCount > 0,
+                    message: `${supportedCount}/${fallbackTests.length} 個備用機制可用`,
+                    details: fallbackTests
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    message: '備用機制測試失敗',
+                    error: error.message
+                };
+            }
+        }
+
+        // 評估整體兼容性
+        function evaluateCompatibility(results) {
+            const recommendations = [];
+            let score = 0;
+
+            if (results.webSpeechApi.success) score += 30;
+            else recommendations.push('瀏覽器不支持Web Speech API，建議使用Chrome、Firefox或Safari最新版本');
+
+            if (results.mediaRecorderApi.success) score += 20;
+            else recommendations.push('瀏覽器不支持MediaRecorder API，無法錄製自定義語音');
+
+            if (results.webAudioApi.success) score += 20;
+            else recommendations.push('瀏覽器不支持Web Audio API，音效功能可能受限');
+
+            if (results.voicesList.success) score += 15;
+            else recommendations.push('沒有可用的語音，語音提醒功能將不可用');
+
+            if (results.fallbackMechanisms.success) score += 15;
+            else recommendations.push('備用提醒機制不足，建議在支持完整功能的設備上使用');
+
+            let rating;
+            if (score >= 80) rating = 'excellent';
+            else if (score >= 60) rating = 'good';
+            else if (score >= 30) rating = 'limited';
+            else rating = 'poor';
+
+            return { rating, recommendations, score };
+        }
+
+        // 渲染測試結果
+        function renderResults(results, browserInfo, evaluation) {
+            const resultSection = document.getElementById('resultSection');
+            
+            const getCompatibilityClass = (rating) => {
+                switch (rating) {
+                    case 'excellent': return 'success';
+                    case 'good': return 'info';
+                    case 'limited': return 'warning';
+                    case 'poor': return 'error';
+                    default: return '';
+                }
+            };
+
+            const getCompatibilityText = (rating) => {
+                switch (rating) {
+                    case 'excellent': return '優秀 - 所有功能完全支持';
+                    case 'good': return '良好 - 大部分功能支持';
+                    case 'limited': return '有限 - 部分功能支持';
+                    case 'poor': return '較差 - 功能支持不足';
+                    default: return '未知';
+                }
+            };
+
+            const renderTestItem = (title, result, icon) => {
+                const success = result?.success;
+                const message = result?.message || '未測試';
+                const iconHtml = success ? '✅' : '❌';
+                
+                let detailsHtml = '';
+                if (result?.details) {
+                    detailsHtml = `<div class="test-details">${JSON.stringify(result.details, null, 2)}</div>`;
+                }
+                
+                return `
+                    <div class="test-item ${success ? 'success' : 'error'}">
+                        <div class="icon">${iconHtml}</div>
+                        <div>
+                            <strong>${icon} ${title}</strong><br>
+                            <span>${message}</span>
+                            ${detailsHtml}
+                        </div>
+                    </div>
+                `;
+            };
+
+            let recommendationsHtml = '';
+            if (evaluation.recommendations.length > 0) {
+                recommendationsHtml = `
+                    <div class="recommendations">
+                        <h3>🔧 優化建議</h3>
+                        <ul>
+                            ${evaluation.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            resultSection.innerHTML = `
+                <h2>📊 測試結果</h2>
+                
+                <div class="result-section info">
+                    <h3>💻 設備信息</h3>
+                    <p><strong>瀏覽器:</strong> ${browserInfo.name} ${browserInfo.version} (${browserInfo.engine})</p>
+                    <p><strong>操作系統:</strong> ${browserInfo.os}</p>
+                    <p><strong>設備類型:</strong> ${browserInfo.isMobile ? '移動設備' : '桌面設備'}</p>
+                </div>
+
+                <div class="result-section ${getCompatibilityClass(evaluation.rating)}">
+                    <h3>🏆 整體兼容性評級</h3>
+                    <p style="font-size: 1.2em; font-weight: bold;">
+                        ${getCompatibilityText(evaluation.rating)} (得分: ${evaluation.score}/100)
+                    </p>
+                </div>
+
+                <div class="result-section">
+                    <h3>🔍 功能支持詳情</h3>
+                    ${renderTestItem('Web Speech API', results.webSpeechApi, '🗣️')}
+                    ${renderTestItem('MediaRecorder API', results.mediaRecorderApi, '🎤')}
+                    ${renderTestItem('Web Audio API', results.webAudioApi, '🔊')}
+                    ${renderTestItem('語音列表', results.voicesList, '🌐')}
+                    ${renderTestItem('備用機制', results.fallbackMechanisms, '🔄')}
+                </div>
+
+                ${recommendationsHtml}
+            `;
+            
+            resultSection.style.display = 'block';
+        }
+
+        // 運行完整測試
+        async function runCompleteTest() {
+            const testButton = document.getElementById('testButton');
+            const loadingSection = document.getElementById('loadingSection');
+            const resultSection = document.getElementById('resultSection');
+            
+            testButton.disabled = true;
+            loadingSection.style.display = 'block';
+            resultSection.style.display = 'none';
+
+            try {
+                console.log('開始執行語音兼容性測試...');
+                
+                const browserInfo = getBrowserInfo();
+                
+                const [
+                    webSpeechResult,
+                    mediaRecorderResult,
+                    webAudioResult,
+                    voicesResult,
+                    fallbackResult
+                ] = await Promise.all([
+                    testWebSpeechApi(),
+                    testMediaRecorderApi(),
+                    testWebAudioApi(),
+                    testVoicesAndLanguage(),
+                    testFallbackMechanisms()
+                ]);
+
+                const results = {
+                    webSpeechApi: webSpeechResult,
+                    mediaRecorderApi: mediaRecorderResult,
+                    webAudioApi: webAudioResult,
+                    voicesList: voicesResult,
+                    fallbackMechanisms: fallbackResult
+                };
+
+                const evaluation = evaluateCompatibility(results);
+                
+                console.log('語音兼容性測試完成', { results, browserInfo, evaluation });
+                
+                renderResults(results, browserInfo, evaluation);
+
+            } catch (error) {
+                console.error('語音兼容性測試執行失敗:', error);
+                resultSection.innerHTML = `
+                    <div class="result-section error">
+                        <h3>❌ 測試失敗</h3>
+                        <p>測試執行過程中發生錯誤: ${error.message}</p>
+                    </div>
+                `;
+                resultSection.style.display = 'block';
+            } finally {
+                loadingSection.style.display = 'none';
+                testButton.disabled = false;
+                testButton.textContent = '重新測試';
+            }
+        }
+
+        // 事件監聽器
+        document.getElementById('testButton').addEventListener('click', runCompleteTest);
+
+        // 頁面加載完成後自動運行測試
+        window.addEventListener('load', runCompleteTest);
+    </script>
+</body>
+</html>
+
+

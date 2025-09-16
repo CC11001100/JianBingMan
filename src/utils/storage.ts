@@ -24,6 +24,8 @@ interface PancakeSettings {
   soundEffectsEnabled: boolean
   /** 音效类型 ('beep' | 'chime' | 'bell' | 'alarm') */
   soundEffectType: 'beep' | 'chime' | 'bell' | 'alarm'
+  /** 是否启用桌面通知 */
+  notificationEnabled: boolean
   /** 自定义语音ID（如果为null则使用系统语音合成） */
   customVoiceId?: string | null
   /** 最后使用时间 */
@@ -139,6 +141,7 @@ class StorageManager {
           speechEnabled: true,
           soundEffectsEnabled: true,
           soundEffectType: 'chime',
+          notificationEnabled: true, // 默认启用桌面通知
           lastUsed: Date.now()
         }
 

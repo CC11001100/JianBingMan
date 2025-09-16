@@ -1,0 +1,38 @@
+.history-test {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.history-test .MuiTableContainer-root {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.history-test .MuiCard-root {
+  transition: transform 0.2s ease-in-out;
+}
+
+.history-test .MuiCard-root:hover {
+  transform: translateY(-2px);
+}
+
+.history-test .MuiChip-root {
+  font-weight: 500;
+}
+
+.history-test .test-result-item {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.history-test .test-result-item.passed {
+  background-color: #e8f5e8;
+  border-left: 4px solid #4caf50;
+}
+
+.history-test .test-result-item.failed {
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+}
+
+

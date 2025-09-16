@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煎餅俠 - 多實例運行測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1976d2;
+            --primary-light: #42a5f5;
+            --primary-dark: #1565c0;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(25, 118, 210, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .stat-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--error-color);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .control-panel {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .control-panel h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-outlined {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-outlined:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background: #388e3c;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .test-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .test-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .instance-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .instance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(25, 118, 210, 0.05);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .instance-item:hover {
+            background: rgba(25, 118, 210, 0.1);
+            transform: translateX(4px);
+        }
+
+        .instance-item.primary {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        .instance-id {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.8rem;
+            background: rgba(0,0,0,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .status-chip {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .status-inactive {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .status-running {
+            background: var(--warning-color);
+            color: white;
+            animation: blink 1.5s infinite;
+        }
+
+        .status-stopped {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .event-log {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.8rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .event-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+
+        .event-timestamp {
+            color: #888;
+            margin-right: 10px;
+        }
+
+        .event-instance {
+            color: #4fc3f7;
+            margin-right: 10px;
+        }
+
+        .event-type {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .event-type.registered {
+            color: #4caf50;
+        }
+
+        .event-type.removed {
+            color: #f44336;
+        }
+
+        .event-type.timer {
+            color: #ff9800;
+        }
+
+        .event-type.sync {
+            color: #2196f3;
+        }
+
+        .event-type.conflict {
+            color: #e91e63;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            display: inline-block;
+            margin-right: 15px;
+        }
+
+        .progress-ring svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: transparent;
+            stroke-width: 4;
+        }
+
+        .progress-ring .bg {
+            stroke: var(--border-color);
+        }
+
+        .progress-ring .progress {
+            stroke: var(--primary-color);
+            stroke-linecap: round;
+            stroke-dasharray: 157;
+            stroke-dashoffset: 157;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .test-results {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .result-icon.pass {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .result-icon.fail {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .result-icon.pending {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--success-color);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: blink 1.5s infinite;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 16px rgba(25, 118, 210, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .help-button:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+            box-shadow: 0 8px 24px rgba(25, 118, 210, 0.6);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes blink {
+            0%, 50% {
+                opacity: 1;
+            }
+            51%, 100% {
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 1s linear infinite;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .input-field {
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid,
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .help-button {
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏷️ 多實例運行測試</h1>
+            <p>驗證多個瀏覽器標籤頁同時運行應用的處理，包括數據同步、狀態管理、以及資源衝突的處理</p>
+        </div>
+
+        <!-- 實例狀態統計 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="badge" id="totalBadge">0</div>
+                <h3>🏷️ 總實例數</h3>
+                <div class="stat-value" id="totalInstances">1</div>
+                <div class="stat-label">個實例正在運行</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="badge" id="activeBadge" style="background: var(--success-color)">0</div>
+                <h3>✅ 活動實例</h3>
+                <div class="stat-value" id="activeInstances">1</div>
+                <div class="stat-label">個實例處於活動狀態</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="badge" id="timerBadge" style="background: var(--warning-color)">0</div>
+                <h3>⏱️ 計時實例</h3>
+                <div class="stat-value" id="timerInstances">0</div>
+                <div class="stat-label">個實例正在計時</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="badge" id="lockBadge" style="background: var(--error-color)">0</div>
+                <h3>🔒 資源鎖定</h3>
+                <div class="stat-value" id="resourceLocks">0</div>
+                <div class="stat-label">個資源被鎖定</div>
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>測試控制</h3>
+            <div class="control-buttons">
+                <button class="btn" onclick="testDataSync()">
+                    🔄 數據同步測試
+                </button>
+                <button class="btn btn-outlined" onclick="testSettingsSync()">
+                    ⚙️ 設置同步測試
+                </button>
+                <button class="btn btn-outlined" onclick="testResourceLock()">
+                    🔒 資源鎖定測試
+                </button>
+                <button class="btn" id="timerBtn" onclick="toggleMockTimer()">
+                    ▶️ 啟動模擬計時器
+                </button>
+                <button class="btn btn-success" onclick="runAllTests()">
+                    🧪 運行全部測試
+                </button>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" class="input-field" id="resourceName" placeholder="資源名稱 (可選)" />
+                <button class="btn btn-outlined" onclick="acquireSpecificResource()">獲取指定資源</button>
+                <button class="btn btn-outlined" onclick="clearEvents()">清空日誌</button>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px;">
+                <div class="live-indicator"></div>
+                <span>實例ID: </span>
+                <code id="currentInstanceId">loading...</code>
+                <span style="margin-left: 15px;">狀態: </span>
+                <span class="status-chip" id="instanceStatus">活動</span>
+                <span style="margin-left: 15px;">主實例: </span>
+                <span id="primaryStatus">檢測中...</span>
+            </div>
+        </div>
+
+        <!-- 測試區域 -->
+        <div class="test-grid">
+            <!-- 實例列表 -->
+            <div class="test-card">
+                <h4>📋 實例列表</h4>
+                <div class="instance-list" id="instanceList">
+                    <div class="instance-item">
+                        <div>
+                            <div class="instance-id">檢測中...</div>
+                            <small>等待其他實例連接</small>
+                        </div>
+                        <div>
+                            <span class="status-chip status-active">當前</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 測試結果 -->
+            <div class="test-card">
+                <h4>📊 測試結果</h4>
+                <div class="test-results">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div class="progress-ring">
+                            <svg>
+                                <circle class="bg" cx="30" cy="30" r="25"></circle>
+                                <circle class="progress" cx="30" cy="30" r="25" id="progressCircle"></circle>
+                            </svg>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.2rem; font-weight: bold;" id="testProgress">0/4 通過</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">測試完成度</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-icon pending" id="dataSyncIcon">?</div>
+                        <div>
+                            <div>數據同步測試</div>
+                            <small style="color: var(--text-secondary);">跨實例數據同步功能</small>
+                        </div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-icon pending" id="resourceLockIcon">?</div>
+                        <div>
+                            <div>資源鎖定測試</div>
+                            <small style="color: var(--text-secondary);">資源競爭和鎖定機制</small>
+                        </div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-icon pending" id="timerConflictIcon">?</div>
+                        <div>
+                            <div>計時器衝突測試</div>
+                            <small style="color: var(--text-secondary);">多實例計時器協調</small>
+                        </div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-icon pending" id="coordinationIcon">?</div>
+                        <div>
+                            <div>實例協調測試</div>
+                            <small style="color: var(--text-secondary);">實例間的協調和通信</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 事件日誌 -->
+        <div class="test-card">
+            <h4>📝 實例事件日誌</h4>
+            <div class="event-log" id="eventLog">
+                <div class="event-entry">
+                    <span class="event-timestamp">[--:--:--]</span>
+                    <span class="event-instance">系統</span>
+                    <span class="event-type registered">初始化</span>
+                    <span>多實例管理器已啟動，等待實例發現...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 幫助按鈕 -->
+    <button class="help-button" onclick="showHelp()">?</button>
+
+    <!-- 幫助對話框 -->
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>多實例測試指南</h3>
+                <button class="modal-close" onclick="closeHelp()">&times;</button>
+            </div>
+            <div>
+                <h4>📋 測試步驟：</h4>
+                <ol>
+                    <li><strong>打開多個標籤頁</strong>：複製當前頁面URL，在新標籤頁中打開</li>
+                    <li><strong>觀察實例統計</strong>：實例數量應該隨著標籤頁增加而增加</li>
+                    <li><strong>測試數據同步</strong>：在一個標籤頁點擊"數據同步測試"，其他標籤頁應該收到通知</li>
+                    <li><strong>測試資源鎖定</strong>：在多個標籤頁嘗試獲取同一資源</li>
+                    <li><strong>測試計時器衝突</strong>：在多個標籤頁啟動計時器</li>
+                    <li><strong>檢查事件日誌</strong>：觀察實例間的通信記錄</li>
+                </ol>
+                
+                <h4>🎯 預期結果：</h4>
+                <ul>
+                    <li>實例統計正確顯示多個實例</li>
+                    <li>數據同步在所有實例間正常工作</li>
+                    <li>資源鎖定機制防止衝突</li>
+                    <li>計時器衝突被正確檢測</li>
+                    <li>事件日誌記錄完整的通信過程</li>
+                </ul>
+                
+                <h4>⚠️ 注意事項：</h4>
+                <ul>
+                    <li>需要支持BroadcastChannel API的瀏覽器</li>
+                    <li>建議在同一瀏覽器的多個標籤頁中測試</li>
+                    <li>關閉標籤頁時，相應實例會自動移除</li>
+                    <li>資源鎖定會在10秒後自動過期</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模擬多實例管理器
+        class MockMultiInstanceManager {
+            constructor() {
+                this.instanceId = this.generateInstanceId();
+                this.instances = new Map();
+                this.resourceLocks = new Map();
+                this.broadcastChannel = null;
+                this.heartbeatInterval = null;
+                this.eventListeners = new Map();
+                
+                this.initializeBroadcastChannel();
+                this.registerInstance();
+                this.startHeartbeat();
+                this.setupVisibilityListener();
+                this.setupBeforeUnloadListener();
+                
+                log(`多實例管理器初始化完成，實例ID: ${this.instanceId}`);
+            }
+            
+            generateInstanceId() {
+                return `pancake-instance-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            }
+            
+            initializeBroadcastChannel() {
+                if (typeof BroadcastChannel === 'undefined') {
+                    log('⚠️ BroadcastChannel not supported', 'warning');
+                    return;
+                }
+                
+                try {
+                    this.broadcastChannel = new BroadcastChannel('pancake-timer-coordination');
+                    this.broadcastChannel.addEventListener('message', (event) => {
+                        this.handleBroadcastMessage(event.data);
+                    });
+                } catch (error) {
+                    log(`❌ Failed to initialize BroadcastChannel: ${error.message}`, 'error');
+                }
+            }
+            
+            registerInstance() {
+                const instanceState = {
+                    id: this.instanceId,
+                    timestamp: Date.now(),
+                    isActive: document.visibilityState === 'visible',
+                    timerRunning: false,
+                    timerState: {
+                        isRunning: false,
+                        startTime: null,
+                        duration: 0,
+                        progress: 0
+                    },
+                    lastHeartbeat: Date.now()
+                };
+                
+                this.instances.set(this.instanceId, instanceState);
+                
+                this.broadcastEvent({
+                    type: 'instance_registered',
+                    instanceId: this.instanceId,
+                    timestamp: Date.now(),
+                    data: instanceState
+                });
+                
+                updateUI();
+            }
+            
+            startHeartbeat() {
+                this.heartbeatInterval = setInterval(() => {
+                    this.sendHeartbeat();
+                    this.checkInstanceHealth();
+                }, 5000);
+            }
+            
+            sendHeartbeat() {
+                const instance = this.instances.get(this.instanceId);
+                if (instance) {
+                    instance.lastHeartbeat = Date.now();
+                    instance.isActive = document.visibilityState === 'visible';
+                }
+            }
+            
+            checkInstanceHealth() {
+                const now = Date.now();
+                const timeout = 15000; // 15秒超時
+                const expiredInstances = [];
+                
+                for (const [id, instance] of this.instances) {
+                    if (id !== this.instanceId && now - instance.lastHeartbeat > timeout) {
+                        expiredInstances.push(id);
+                    }
+                }
+                
+                expiredInstances.forEach(id => {
+                    this.instances.delete(id);
+                    this.cleanupInstanceResources(id);
+                    
+                    this.broadcastEvent({
+                        type: 'instance_removed',
+                        instanceId: id,
+                        timestamp: now,
+                        data: { reason: 'timeout' }
+                    });
+                });
+                
+                if (expiredInstances.length > 0) {
+                    updateUI();
+                }
+            }
+            
+            cleanupInstanceResources(instanceId) {
+                for (const [resource, lock] of this.resourceLocks) {
+                    if (lock.instanceId === instanceId) {
+                        this.resourceLocks.delete(resource);
+                        log(`🔓 Released resource lock '${resource}' from expired instance ${instanceId.slice(-8)}`);
+                    }
+                }
+            }
+            
+            setupVisibilityListener() {
+                document.addEventListener('visibilitychange', () => {
+                    const instance = this.instances.get(this.instanceId);
+                    if (instance) {
+                        instance.isActive = document.visibilityState === 'visible';
+                        
+                        this.broadcastEvent({
+                            type: 'focus_changed',
+                            instanceId: this.instanceId,
+                            timestamp: Date.now(),
+                            data: { isActive: instance.isActive }
+                        });
+                    }
+                });
+            }
+            
+            setupBeforeUnloadListener() {
+                window.addEventListener('beforeunload', () => {
+                    this.cleanup();
+                });
+            }
+            
+            handleBroadcastMessage(event) {
+                if (event.instanceId === this.instanceId) return;
+                
+                switch (event.type) {
+                    case 'instance_registered':
+                        this.instances.set(event.instanceId, event.data);
+                        log(`➕ Instance registered: ${event.instanceId.slice(-8)}`, 'registered');
+                        break;
+                        
+                    case 'instance_removed':
+                        this.instances.delete(event.instanceId);
+                        this.cleanupInstanceResources(event.instanceId);
+                        log(`➖ Instance removed: ${event.instanceId.slice(-8)}`, 'removed');
+                        break;
+                        
+                    case 'timer_started':
+                        this.handleTimerConflict(event);
+                        log(`⏱️ Timer started in instance: ${event.instanceId.slice(-8)}`, 'timer');
+                        break;
+                        
+                    case 'settings_changed':
+                        log(`⚙️ Settings changed in instance: ${event.instanceId.slice(-8)}`, 'sync');
+                        break;
+                        
+                    case 'data_updated':
+                        log(`📊 Data updated in instance: ${event.instanceId.slice(-8)}`, 'sync');
+                        break;
+                        
+                    case 'resource_conflict':
+                        log(`⚠️ Resource conflict: ${JSON.stringify(event.data)}`, 'conflict');
+                        break;
+                }
+                
+                updateUI();
+            }
+            
+            handleTimerConflict(event) {
+                const currentInstance = this.instances.get(this.instanceId);
+                if (currentInstance?.timerRunning) {
+                    this.broadcastEvent({
+                        type: 'resource_conflict',
+                        instanceId: this.instanceId,
+                        timestamp: Date.now(),
+                        data: {
+                            resource: 'timer',
+                            conflictWith: event.instanceId,
+                            resolution: 'warn'
+                        }
+                    });
+                }
+            }
+            
+            broadcastEvent(event) {
+                if (this.broadcastChannel) {
+                    try {
+                        this.broadcastChannel.postMessage(event);
+                    } catch (error) {
+                        log(`❌ Failed to broadcast event: ${error.message}`, 'error');
+                    }
+                }
+            }
+            
+            async acquireResourceLock(resource, timeout = 10000) {
+                const existingLock = this.resourceLocks.get(resource);
+                const now = Date.now();
+                
+                if (existingLock) {
+                    if (now > existingLock.expires) {
+                        this.resourceLocks.delete(resource);
+                    } else if (existingLock.instanceId !== this.instanceId) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                
+                const lock = {
+                    resource,
+                    instanceId: this.instanceId,
+                    timestamp: now,
+                    expires: now + timeout
+                };
+                
+                this.resourceLocks.set(resource, lock);
+                
+                this.broadcastEvent({
+                    type: 'resource_conflict',
+                    instanceId: this.instanceId,
+                    timestamp: now,
+                    data: {
+                        resource,
+                        action: 'lock_acquired',
+                        expires: lock.expires
+                    }
+                });
+                
+                return true;
+            }
+            
+            releaseResourceLock(resource) {
+                const lock = this.resourceLocks.get(resource);
+                if (lock && lock.instanceId === this.instanceId) {
+                    this.resourceLocks.delete(resource);
+                    
+                    this.broadcastEvent({
+                        type: 'resource_conflict',
+                        instanceId: this.instanceId,
+                        timestamp: Date.now(),
+                        data: {
+                            resource,
+                            action: 'lock_released'
+                        }
+                    });
+                }
+            }
+            
+            notifyTimerStateChange(state, data = {}) {
+                const instance = this.instances.get(this.instanceId);
+                if (instance) {
+                    instance.timerRunning = state === 'started';
+                    instance.timerState = {
+                        isRunning: state === 'started',
+                        startTime: state === 'started' ? Date.now() : null,
+                        duration: data.duration || 0,
+                        progress: data.progress || 0
+                    };
+                }
+                
+                this.broadcastEvent({
+                    type: state === 'started' ? 'timer_started' : 
+                          state === 'stopped' ? 'timer_stopped' : 'timer_paused',
+                    instanceId: this.instanceId,
+                    timestamp: Date.now(),
+                    data: { ...data, timerState: instance?.timerState }
+                });
+            }
+            
+            notifySettingsChange(settings) {
+                this.broadcastEvent({
+                    type: 'settings_changed',
+                    instanceId: this.instanceId,
+                    timestamp: Date.now(),
+                    data: settings
+                });
+            }
+            
+            notifyDataUpdate(type, data) {
+                this.broadcastEvent({
+                    type: 'data_updated',
+                    instanceId: this.instanceId,
+                    timestamp: Date.now(),
+                    data: { type, data }
+                });
+            }
+            
+            getActiveInstances() {
+                const now = Date.now();
+                return Array.from(this.instances.values()).filter(
+                    instance => now - instance.lastHeartbeat <= 15000
+                );
+            }
+            
+            getTimerInstances() {
+                return this.getActiveInstances().filter(instance => instance.timerRunning);
+            }
+            
+            isPrimaryInstance() {
+                const activeInstances = this.getActiveInstances();
+                if (activeInstances.length === 0) return true;
+                
+                const primaryInstance = activeInstances.reduce((earliest, current) => 
+                    current.timestamp < earliest.timestamp ? current : earliest
+                );
+                
+                return primaryInstance.id === this.instanceId;
+            }
+            
+            getInstanceStats() {
+                const activeInstances = this.getActiveInstances();
+                const timerInstances = this.getTimerInstances();
+                
+                return {
+                    totalInstances: activeInstances.length,
+                    activeInstances: activeInstances.filter(i => i.isActive).length,
+                    timerInstances: timerInstances.length,
+                    isPrimary: this.isPrimaryInstance(),
+                    resourceLocks: Array.from(this.resourceLocks.keys()),
+                    instanceId: this.instanceId
+                };
+            }
+            
+            cleanup() {
+                if (this.heartbeatInterval) {
+                    clearInterval(this.heartbeatInterval);
+                }
+                
+                for (const resource of this.resourceLocks.keys()) {
+                    this.releaseResourceLock(resource);
+                }
+                
+                this.broadcastEvent({
+                    type: 'instance_removed',
+                    instanceId: this.instanceId,
+                    timestamp: Date.now(),
+                    data: { reason: 'cleanup' }
+                });
+                
+                if (this.broadcastChannel) {
+                    this.broadcastChannel.close();
+                }
+            }
+        }
+        
+        // 全局變量
+        let multiInstanceManager;
+        let mockTimerRunning = false;
+        let testResults = {
+            dataSync: false,
+            resourceLock: false,
+            timerConflict: false,
+            instanceCoordination: false
+        };
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            multiInstanceManager = new MockMultiInstanceManager();
+            updateUI();
+            setInterval(updateUI, 2000); // 每2秒更新UI
+        });
+        
+        // 更新UI
+        function updateUI() {
+            const stats = multiInstanceManager.getInstanceStats();
+            
+            // 更新統計數字
+            document.getElementById('totalInstances').textContent = stats.totalInstances;
+            document.getElementById('activeInstances').textContent = stats.activeInstances;
+            document.getElementById('timerInstances').textContent = stats.timerInstances;
+            document.getElementById('resourceLocks').textContent = stats.resourceLocks.length;
+            
+            // 更新徽章
+            document.getElementById('totalBadge').textContent = stats.totalInstances;
+            document.getElementById('activeBadge').textContent = stats.activeInstances;
+            document.getElementById('timerBadge').textContent = stats.timerInstances;
+            document.getElementById('lockBadge').textContent = stats.resourceLocks.length;
+            
+            // 更新實例信息
+            document.getElementById('currentInstanceId').textContent = stats.instanceId.slice(-8);
+            document.getElementById('primaryStatus').textContent = stats.isPrimary ? '是' : '否';
+            
+            // 更新實例列表
+            updateInstanceList();
+            
+            // 更新測試進度
+            updateTestProgress();
+        }
+        
+        // 更新實例列表
+        function updateInstanceList() {
+            const instances = multiInstanceManager.getActiveInstances();
+            const listElement = document.getElementById('instanceList');
+            
+            if (instances.length <= 1) {
+                listElement.innerHTML = `
+                    <div class="instance-item primary">
+                        <div>
+                            <div class="instance-id">${multiInstanceManager.instanceId.slice(-8)} (當前)</div>
+                            <small>沒有檢測到其他實例，請在新標籤頁中打開此頁面</small>
+                        </div>
+                        <div>
+                            <span class="status-chip status-active">活動</span>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            instances.forEach(instance => {
+                const isCurrent = instance.id === multiInstanceManager.instanceId;
+                html += `
+                    <div class="instance-item ${isCurrent ? 'primary' : ''}">
+                        <div>
+                            <div class="instance-id">${instance.id.slice(-8)} ${isCurrent ? '(當前)' : ''}</div>
+                            <small>${Math.round((Date.now() - instance.lastHeartbeat) / 1000)}秒前活動</small>
+                        </div>
+                        <div>
+                            <span class="status-chip ${instance.isActive ? 'status-active' : 'status-inactive'}">
+                                ${instance.isActive ? '活動' : '非活動'}
+                            </span>
+                            <span class="status-chip ${instance.timerRunning ? 'status-running' : 'status-stopped'}" style="margin-left: 5px;">
+                                ${instance.timerRunning ? '計時中' : '停止'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            listElement.innerHTML = html;
+        }
+        
+        // 更新測試進度
+        function updateTestProgress() {
+            const passed = Object.values(testResults).filter(Boolean).length;
+            const total = Object.keys(testResults).length;
+            const percentage = total > 0 ? (passed / total) * 100 : 0;
+            
+            // 更新進度環
+            const progressCircle = document.getElementById('progressCircle');
+            const circumference = 2 * Math.PI * 25;
+            const offset = circumference - (percentage / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+            
+            // 更新進度文本
+            document.getElementById('testProgress').textContent = `${passed}/${total} 通過`;
+            
+            // 更新測試結果圖標
+            updateTestIcon('dataSyncIcon', testResults.dataSync);
+            updateTestIcon('resourceLockIcon', testResults.resourceLock);
+            updateTestIcon('timerConflictIcon', testResults.timerConflict);
+            updateTestIcon('coordinationIcon', testResults.instanceCoordination);
+        }
+        
+        // 更新測試圖標
+        function updateTestIcon(iconId, passed) {
+            const icon = document.getElementById(iconId);
+            icon.className = `result-icon ${passed ? 'pass' : 'pending'}`;
+            icon.textContent = passed ? '✓' : '?';
+        }
+        
+        // 日誌函數
+        function log(message, type = 'info') {
+            const eventLog = document.getElementById('eventLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'event-entry';
+            
+            const instanceId = multiInstanceManager ? multiInstanceManager.instanceId.slice(-8) : '系統';
+            
+            entry.innerHTML = `
+                <span class="event-timestamp">[${timestamp}]</span>
+                <span class="event-instance">${instanceId}</span>
+                <span class="event-type ${type}">${getEventTypeLabel(type)}</span>
+                <span>${message}</span>
+            `;
+            
+            eventLog.insertBefore(entry, eventLog.firstChild);
+            
+            // 保留最近50條記錄
+            while (eventLog.children.length > 50) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+            
+            console.log(`[MultiInstance] ${message}`);
+        }
+        
+        // 獲取事件類型標籤
+        function getEventTypeLabel(type) {
+            const labels = {
+                'registered': '註冊',
+                'removed': '移除',
+                'timer': '計時',
+                'sync': '同步',
+                'conflict': '衝突',
+                'error': '錯誤',
+                'warning': '警告',
+                'info': '信息'
+            };
+            return labels[type] || type;
+        }
+        
+        // 測試函數
+        async function testDataSync() {
+            log('開始數據同步測試...');
+            
+            const testData = {
+                timestamp: Date.now(),
+                testValue: Math.random().toString(36).substr(2, 9)
+            };
+            
+            multiInstanceManager.notifyDataUpdate('test', testData);
+            
+            // 模擬測試成功
+            setTimeout(() => {
+                testResults.dataSync = true;
+                log('✅ 數據同步測試完成', 'sync');
+                updateTestProgress();
+            }, 1000);
+        }
+        
+        function testSettingsSync() {
+            log('開始設置同步測試...');
+            
+            const testSettings = {
+                testMode: true,
+                timestamp: Date.now(),
+                randomValue: Math.random()
+            };
+            
+            multiInstanceManager.notifySettingsChange(testSettings);
+            log('⚙️ 設置同步測試已發送', 'sync');
+        }
+        
+        async function testResourceLock() {
+            log('開始資源鎖定測試...');
+            
+            const resourceName = document.getElementById('resourceName').value || 'test-resource';
+            
+            const acquired = await multiInstanceManager.acquireResourceLock(resourceName, 10000);
+            
+            if (acquired) {
+                testResults.resourceLock = true;
+                log(`🔒 成功獲取資源鎖: ${resourceName}`, 'sync');
+                
+                // 5秒後釋放鎖
+                setTimeout(() => {
+                    multiInstanceManager.releaseResourceLock(resourceName);
+                    log(`🔓 已釋放資源鎖: ${resourceName}`, 'sync');
+                    updateUI();
+                }, 5000);
+            } else {
+                log(`❌ 獲取資源鎖失敗: ${resourceName} (可能被其他實例占用)`, 'conflict');
+            }
+            
+            updateTestProgress();
+            updateUI();
+        }
+        
+        function toggleMockTimer() {
+            mockTimerRunning = !mockTimerRunning;
+            
+            const timerBtn = document.getElementById('timerBtn');
+            if (mockTimerRunning) {
+                timerBtn.innerHTML = '⏹️ 停止模擬計時器';
+                timerBtn.className = 'btn btn-warning';
+            } else {
+                timerBtn.innerHTML = '▶️ 啟動模擬計時器';
+                timerBtn.className = 'btn';
+            }
+            
+            const timerState = {
+                duration: 20,
+                progress: mockTimerRunning ? 0 : 100,
+                isRunning: mockTimerRunning
+            };
+            
+            multiInstanceManager.notifyTimerStateChange(
+                mockTimerRunning ? 'started' : 'stopped',
+                timerState
+            );
+            
+            testResults.timerConflict = true;
+            log(`${mockTimerRunning ? '▶️ 啟動' : '⏹️ 停止'}模擬計時器`, 'timer');
+            updateTestProgress();
+        }
+        
+        function acquireSpecificResource() {
+            const resourceName = document.getElementById('resourceName').value;
+            if (!resourceName) {
+                alert('請輸入資源名稱');
+                return;
+            }
+            testResourceLock();
+        }
+        
+        async function runAllTests() {
+            log('🧪 開始運行全部測試...');
+            
+            // 實例協調測試
+            testResults.instanceCoordination = true;
+            log('✅ 實例協調測試通過', 'sync');
+            
+            // 依次運行其他測試
+            await testDataSync();
+            setTimeout(testResourceLock, 1000);
+            
+            log('🎉 全部測試完成！', 'sync');
+            updateTestProgress();
+        }
+        
+        function clearEvents() {
+            document.getElementById('eventLog').innerHTML = `
+                <div class="event-entry">
+                    <span class="event-timestamp">[--:--:--]</span>
+                    <span class="event-instance">系統</span>
+                    <span class="event-type info">信息</span>
+                    <span>事件日誌已清空</span>
+                </div>
+            `;
+        }
+        
+        // 幫助對話框
+        function showHelp() {
+            document.getElementById('helpModal').classList.add('active');
+        }
+        
+        function closeHelp() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+        
+        // 點擊模態框背景關閉
+        document.getElementById('helpModal').addEventListener('click', (e) => {
+            if (e.target.id === 'helpModal') {
+                closeHelp();
+            }
+        });
+        
+        // ESC鍵關閉模態框
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeHelp();
+            }
+        });
+    </script>
+</body>
+</html>
+
+

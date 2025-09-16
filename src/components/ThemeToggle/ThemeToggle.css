@@ -1,0 +1,349 @@
+/**
+ * 主題切換組件樣式
+ */
+
+/* 主題切換按鈕基本樣式 */
+.theme-toggle {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.05);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+/* 不同主題下的按鈕樣式 */
+.theme-toggle-light {
+  background-color: rgba(255, 107, 53, 0.08);
+  color: #ff6b35;
+}
+
+.theme-toggle-light:hover {
+  background-color: rgba(255, 107, 53, 0.12);
+}
+
+.theme-toggle-dark {
+  background-color: rgba(255, 138, 101, 0.12);
+  color: #ff8a65;
+}
+
+.theme-toggle-dark:hover {
+  background-color: rgba(255, 138, 101, 0.16);
+}
+
+/* 主題切換容器樣式 */
+.theme-toggle-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-button {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  background: linear-gradient(135deg, 
+    rgba(255, 107, 53, 0.1) 0%, 
+    rgba(76, 175, 80, 0.1) 100%);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-toggle-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.theme-toggle-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.theme-toggle-container:hover .theme-toggle-label {
+  opacity: 1;
+}
+
+/* 主題菜單樣式 */
+.theme-menu-paper {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 180px;
+}
+
+.theme-menu-item {
+  border-radius: 8px !important;
+  margin: 4px 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.theme-menu-item:hover {
+  background-color: rgba(255, 107, 53, 0.08) !important;
+  transform: translateX(2px);
+}
+
+.theme-menu-item.Mui-selected {
+  background-color: rgba(255, 107, 53, 0.12) !important;
+  color: #ff6b35 !important;
+}
+
+.theme-menu-item.Mui-selected:hover {
+  background-color: rgba(255, 107, 53, 0.16) !important;
+}
+
+.theme-menu-item .MuiListItemIcon-root {
+  min-width: 36px !important;
+  color: inherit;
+}
+
+.theme-menu-item .MuiListItemText-primary {
+  font-weight: 500;
+}
+
+.theme-menu-item .MuiListItemText-secondary {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* 動畫效果 */
+@keyframes themeSwitch {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.theme-toggle.switching {
+  animation: themeSwitch 0.6s ease-in-out;
+}
+
+/* 徽章樣式 */
+.theme-toggle .MuiBadge-badge {
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.6);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 光暈效果 */
+.theme-toggle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.theme-toggle:hover::before {
+  opacity: 1;
+}
+
+/* 響應式設計 */
+@media (max-width: 600px) {
+  .theme-toggle {
+    padding: 8px;
+  }
+  
+  .theme-menu-paper {
+    min-width: 160px;
+  }
+  
+  .theme-toggle-container {
+    gap: 2px;
+  }
+  
+  .theme-toggle-label {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .theme-toggle {
+    padding: 6px;
+  }
+  
+  .theme-menu-paper {
+    min-width: 140px;
+  }
+  
+  .theme-menu-item {
+    padding: 8px 12px !important;
+  }
+  
+  .theme-menu-item .MuiListItemText-primary {
+    font-size: 0.9rem;
+  }
+}
+
+/* 高對比度模式 */
+@media (prefers-contrast: high) {
+  .theme-toggle {
+    border: 2px solid currentColor;
+  }
+  
+  .theme-menu-paper {
+    border: 2px solid currentColor;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .theme-menu-item {
+    border: 1px solid transparent;
+  }
+  
+  .theme-menu-item:hover,
+  .theme-menu-item.Mui-selected {
+    border-color: currentColor;
+  }
+}
+
+/* 減少動畫偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .theme-toggle-button,
+  .theme-toggle-label,
+  .theme-menu-item {
+    transition: none !important;
+  }
+  
+  .theme-toggle.switching {
+    animation: none;
+  }
+  
+  .theme-toggle .MuiBadge-badge {
+    animation: none;
+  }
+  
+  .theme-toggle:hover {
+    transform: none;
+  }
+  
+  .theme-toggle-button:hover {
+    transform: none;
+  }
+}
+
+/* 暗色主題特定樣式 */
+[data-theme="dark"] .theme-toggle-light {
+  background-color: rgba(255, 138, 101, 0.12);
+  color: #ff8a65;
+}
+
+[data-theme="dark"] .theme-toggle-light:hover {
+  background-color: rgba(255, 138, 101, 0.16);
+}
+
+[data-theme="dark"] .theme-menu-paper {
+  background-color: #2d2d2d !important;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .theme-menu-item:hover {
+  background-color: rgba(255, 138, 101, 0.12) !important;
+}
+
+[data-theme="dark"] .theme-menu-item.Mui-selected {
+  background-color: rgba(255, 138, 101, 0.16) !important;
+  color: #ff8a65 !important;
+}
+
+[data-theme="dark"] .theme-menu-item.Mui-selected:hover {
+  background-color: rgba(255, 138, 101, 0.2) !important;
+}
+
+/* 焦點樣式 */
+.theme-toggle:focus-visible {
+  outline: 2px solid #ff6b35;
+  outline-offset: 2px;
+}
+
+.theme-menu-item:focus-visible {
+  outline: 2px solid #ff6b35;
+  outline-offset: -2px;
+}
+
+/* 觸控優化 */
+@media (hover: none) and (pointer: coarse) {
+  .theme-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .theme-menu-item {
+    min-height: 48px;
+    padding: 12px 16px !important;
+  }
+}
+
+/* 無障礙增強 */
+.theme-toggle[aria-pressed="true"] {
+  background-color: rgba(255, 107, 53, 0.16);
+}
+
+.theme-menu-item[aria-selected="true"] {
+  font-weight: 600;
+}
+
+/* 載入狀態 */
+.theme-toggle.loading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.theme-toggle.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+

@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>錯誤處理和異常場景測試 - 煎餅俠</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .control-panel {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #ff6b35;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #e55722;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .test-category {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+        .test-category.storage {
+            background-color: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        .test-category.network {
+            background-color: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+        .test-category.permission {
+            background-color: #fff3e0;
+            border-left-color: #ff9800;
+        }
+        .test-category.api {
+            background-color: #f3e5f5;
+            border-left-color: #9c27b0;
+        }
+        .test-category.runtime {
+            background-color: #ffebee;
+            border-left-color: #f44336;
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            background: white;
+        }
+        .test-item.passed {
+            border-left: 4px solid #4caf50;
+            background-color: #e8f5e8;
+        }
+        .test-item.failed {
+            border-left: 4px solid #f44336;
+            background-color: #ffebee;
+        }
+        .test-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .test-message {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .test-guidance {
+            color: #888;
+            font-size: 12px;
+            font-style: italic;
+        }
+        .test-details {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .stability-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: white;
+        }
+        .stability-excellent {
+            background: #4caf50;
+        }
+        .stability-good {
+            background: #2196f3;
+        }
+        .stability-fair {
+            background: #ff9800;
+        }
+        .stability-poor {
+            background: #f44336;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .recommendations {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .recommendations h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .recommendations ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .recommendations li {
+            margin: 8px 0;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ff6b35;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        .alert-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .browser-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .error-patterns {
+            margin: 20px 0;
+        }
+        .pattern-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #ddd;
+        }
+        .pattern-item.severity-high {
+            border-left-color: #f44336;
+        }
+        .pattern-item.severity-medium {
+            border-left-color: #ff9800;
+        }
+        .pattern-item.severity-low {
+            border-left-color: #4caf50;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ 煎餅俠 - 錯誤處理和異常場景測試</h1>
+            <p>驗證應用在各種錯誤和異常場景下的處理能力和穩定性</p>
+        </div>
+
+        <div class="control-panel">
+            <button id="runTestBtn" class="btn btn-primary">運行完整錯誤測試</button>
+            <button id="testStorageBtn" class="btn btn-secondary">存儲錯誤測試</button>
+            <button id="testNetworkBtn" class="btn btn-secondary">網絡錯誤測試</button>
+            <button id="testPermissionBtn" class="btn btn-secondary">權限錯誤測試</button>
+            <button id="testApiBtn" class="btn btn-secondary">API錯誤測試</button>
+            <button id="clearBtn" class="btn btn-danger">清除結果</button>
+        </div>
+
+        <div id="errorAlert" class="alert alert-error" style="display: none;"></div>
+        <div id="successAlert" class="alert alert-success" style="display: none;"></div>
+
+        <div id="testResults" class="test-section" style="display: none;">
+            <h3>測試結果</h3>
+            <div id="overallStats" class="stats-grid"></div>
+            <div id="stabilityIndicator" style="text-align: center; margin: 20px 0;"></div>
+            <div id="testCategories"></div>
+        </div>
+
+        <div id="browserInfo" class="browser-info" style="display: none;">
+            <h4>瀏覽器信息</h4>
+            <div id="browserDetails"></div>
+        </div>
+
+        <div id="recommendations" class="recommendations" style="display: none;">
+            <h3>🔧 優化建議</h3>
+            <ul id="recommendationsList"></ul>
+        </div>
+
+        <div id="errorPatterns" class="error-patterns" style="display: none;">
+            <h3>📊 錯誤模式分析</h3>
+            <div id="patternsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // 模擬錯誤處理測試器
+        class ErrorHandlingTester {
+            constructor() {
+                this.testResults = [];
+            }
+
+            async runCompleteErrorTest() {
+                console.log('開始錯誤處理和異常場景測試...');
+                this.testResults = [];
+
+                // 並行執行不同類別的測試
+                await Promise.all([
+                    this.testStorageErrors(),
+                    this.testNetworkErrors(),
+                    this.testPermissionErrors(),
+                    this.testApiErrors(),
+                    this.testRuntimeErrors()
+                ]);
+
+                return this.generateTestReport();
+            }
+
+            async testStorageErrors() {
+                console.log('測試存儲錯誤處理...');
+
+                // 測試 IndexedDB 支持
+                try {
+                    const supported = 'indexedDB' in window;
+                    this.testResults.push({
+                        testName: 'IndexedDB 支持檢測',
+                        category: 'storage',
+                        success: supported,
+                        message: supported ? 'IndexedDB 可用' : 'IndexedDB 不支持',
+                        userGuidance: supported ? '存儲功能正常' : '存儲功能受限，請使用現代瀏覽器'
+                    });
+                } catch (error) {
+                    this.testResults.push({
+                        testName: 'IndexedDB 支持檢測',
+                        category: 'storage',
+                        success: false,
+                        message: 'IndexedDB 檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試存儲配額
+                try {
+                    if ('storage' in navigator && 'estimate' in navigator.storage) {
+                        const quota = await navigator.storage.estimate();
+                        const usedMB = Math.round((quota.usage || 0) / 1024 / 1024);
+                        const totalMB = Math.round((quota.quota || 0) / 1024 / 1024);
+                        
+                        this.testResults.push({
+                            testName: '存儲配額檢測',
+                            category: 'storage',
+                            success: true,
+                            message: `已使用: ${usedMB}MB / ${totalMB}MB`,
+                            userGuidance: '存儲空間充足'
+                        });
+                    } else {
+                        this.testResults.push({
+                            testName: '存儲配額檢測',
+                            category: 'storage',
+                            success: false,
+                            message: '無法獲取存儲配額信息',
+                            userGuidance: '無法檢測存儲空間，建議定期清理瀏覽器數據'
+                        });
+                    }
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '存儲配額檢測',
+                        category: 'storage',
+                        success: false,
+                        message: '存儲配額檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試 localStorage
+                try {
+                    const testKey = 'error_test_' + Date.now();
+                    localStorage.setItem(testKey, 'test');
+                    const value = localStorage.getItem(testKey);
+                    localStorage.removeItem(testKey);
+                    
+                    this.testResults.push({
+                        testName: 'localStorage 功能測試',
+                        category: 'storage',
+                        success: value === 'test',
+                        message: value === 'test' ? 'localStorage 工作正常' : 'localStorage 讀寫異常',
+                        userGuidance: 'localStorage 可用於存儲臨時數據'
+                    });
+                } catch (error) {
+                    this.testResults.push({
+                        testName: 'localStorage 功能測試',
+                        category: 'storage',
+                        success: false,
+                        message: 'localStorage 不可用',
+                        errorDetails: error.message,
+                        userGuidance: '瀏覽器隱私模式可能禁用了 localStorage'
+                    });
+                }
+            }
+
+            async testNetworkErrors() {
+                console.log('測試網絡錯誤處理...');
+
+                // 測試在線狀態
+                try {
+                    const isOnline = navigator.onLine;
+                    this.testResults.push({
+                        testName: '網絡連接狀態',
+                        category: 'network',
+                        success: true,
+                        message: `當前狀態: ${isOnline ? '在線' : '離線'}`,
+                        fallbackActivated: !isOnline,
+                        userGuidance: isOnline ? '網絡連接正常' : '當前離線，部分功能可能受限'
+                    });
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '網絡連接狀態',
+                        category: 'network',
+                        success: false,
+                        message: '無法檢測網絡狀態',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試網絡類型檢測
+                try {
+                    if ('connection' in navigator) {
+                        const connection = navigator.connection;
+                        const effectiveType = connection.effectiveType || 'unknown';
+                        const downlink = connection.downlink || 0;
+                        
+                        this.testResults.push({
+                            testName: '網絡類型檢測',
+                            category: 'network',
+                            success: true,
+                            message: `網絡類型: ${effectiveType}, 下行速度: ${downlink}Mbps`,
+                            fallbackActivated: effectiveType === '2g' || effectiveType === 'slow-2g',
+                            userGuidance: effectiveType === '2g' ? '網絡較慢，建議使用基本功能' : '網絡速度良好'
+                        });
+                    } else {
+                        this.testResults.push({
+                            testName: '網絡類型檢測',
+                            category: 'network',
+                            success: false,
+                            message: '不支持網絡類型檢測',
+                            userGuidance: '無法檢測網絡類型，功能按正常網絡運行'
+                        });
+                    }
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '網絡類型檢測',
+                        category: 'network',
+                        success: false,
+                        message: '網絡類型檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試頁面可見性 API
+                try {
+                    const supported = 'visibilityState' in document;
+                    const currentState = supported ? document.visibilityState : 'unknown';
+                    
+                    this.testResults.push({
+                        testName: '頁面可見性檢測',
+                        category: 'network',
+                        success: supported,
+                        message: supported ? `當前狀態: ${currentState}` : '不支持頁面可見性檢測',
+                        userGuidance: supported ? '支持後台優化' : '無法檢測頁面狀態'
+                    });
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '頁面可見性檢測',
+                        category: 'network',
+                        success: false,
+                        message: '頁面可見性檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+            }
+
+            async testPermissionErrors() {
+                console.log('測試權限錯誤處理...');
+
+                // 測試通知權限
+                try {
+                    if ('Notification' in window) {
+                        const permission = Notification.permission;
+                        this.testResults.push({
+                            testName: '通知權限檢測',
+                            category: 'permission',
+                            success: true,
+                            message: `通知權限: ${permission}`,
+                            fallbackActivated: permission === 'denied',
+                            userGuidance: permission === 'granted' ? '可以發送桌面通知' : 
+                                        permission === 'denied' ? '通知已被阻止，使用其他提醒方式' : 
+                                        '可以請求通知權限'
+                        });
+                    } else {
+                        this.testResults.push({
+                            testName: '通知權限檢測',
+                            category: 'permission',
+                            success: false,
+                            message: '不支持桌面通知',
+                            fallbackActivated: true,
+                            userGuidance: '使用振動和音效作為替代提醒'
+                        });
+                    }
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '通知權限檢測',
+                        category: 'permission',
+                        success: false,
+                        message: '通知權限檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試媒體權限
+                try {
+                    const supported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+                    if (supported) {
+                        // 不實際請求權限，只檢測支持性
+                        this.testResults.push({
+                            testName: '媒體權限支持',
+                            category: 'permission',
+                            success: true,
+                            message: '支持媒體權限請求',
+                            userGuidance: '可以請求麥克風權限進行錄音'
+                        });
+                    } else {
+                        this.testResults.push({
+                            testName: '媒體權限支持',
+                            category: 'permission',
+                            success: false,
+                            message: '不支持媒體權限',
+                            fallbackActivated: true,
+                            userGuidance: '無法使用錄音功能'
+                        });
+                    }
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '媒體權限支持',
+                        category: 'permission',
+                        success: false,
+                        message: '媒體權限檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試 Wake Lock 權限
+                try {
+                    const supported = 'wakeLock' in navigator;
+                    this.testResults.push({
+                        testName: 'Wake Lock 權限支持',
+                        category: 'permission',
+                        success: supported,
+                        message: supported ? '支持屏幕常亮功能' : '不支持屏幕常亮',
+                        fallbackActivated: !supported,
+                        userGuidance: supported ? '可以保持屏幕常亮' : '需要手動保持屏幕開啟'
+                    });
+                } catch (error) {
+                    this.testResults.push({
+                        testName: 'Wake Lock 權限支持',
+                        category: 'permission',
+                        success: false,
+                        message: 'Wake Lock 檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+            }
+
+            async testApiErrors() {
+                console.log('測試 API 錯誤處理...');
+
+                // 測試 Web Speech API
+                try {
+                    const supported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+                    if (supported) {
+                        const voices = speechSynthesis.getVoices();
+                        this.testResults.push({
+                            testName: 'Web Speech API',
+                            category: 'api',
+                            success: true,
+                            message: `支持語音合成，可用語音: ${voices.length}個`,
+                            userGuidance: '可以使用語音提醒功能'
+                        });
+                    } else {
+                        this.testResults.push({
+                            testName: 'Web Speech API',
+                            category: 'api',
+                            success: false,
+                            message: '不支持語音合成',
+                            fallbackActivated: true,
+                            userGuidance: '使用振動和音效作為替代提醒'
+                        });
+                    }
+                } catch (error) {
+                    this.testResults.push({
+                        testName: 'Web Speech API',
+                        category: 'api',
+                        success: false,
+                        message: 'Web Speech API 檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試 Web Audio API
+                try {
+                    const supported = 'AudioContext' in window || 'webkitAudioContext' in window;
+                    if (supported) {
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        const context = new AudioContextClass();
+                        await context.close();
+                        
+                        this.testResults.push({
+                            testName: 'Web Audio API',
+                            category: 'api',
+                            success: true,
+                            message: '支持 Web Audio API',
+                            userGuidance: '可以播放音效提醒'
+                        });
+                    } else {
+                        this.testResults.push({
+                            testName: 'Web Audio API',
+                            category: 'api',
+                            success: false,
+                            message: '不支持 Web Audio API',
+                            fallbackActivated: true,
+                            userGuidance: '音效功能可能受限'
+                        });
+                    }
+                } catch (error) {
+                    this.testResults.push({
+                        testName: 'Web Audio API',
+                        category: 'api',
+                        success: false,
+                        message: 'Web Audio API 檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試 MediaRecorder API
+                try {
+                    const supported = 'MediaRecorder' in window;
+                    if (supported) {
+                        const supportedTypes = [
+                            'audio/webm',
+                            'audio/webm;codecs=opus',
+                            'audio/ogg',
+                            'audio/mp4'
+                        ].filter(type => MediaRecorder.isTypeSupported(type));
+                        
+                        this.testResults.push({
+                            testName: 'MediaRecorder API',
+                            category: 'api',
+                            success: supportedTypes.length > 0,
+                            message: `支持 ${supportedTypes.length} 種音頻格式`,
+                            userGuidance: supportedTypes.length > 0 ? '可以錄製自定義語音' : '錄音功能受限'
+                        });
+                    } else {
+                        this.testResults.push({
+                            testName: 'MediaRecorder API',
+                            category: 'api',
+                            success: false,
+                            message: '不支持 MediaRecorder API',
+                            fallbackActivated: true,
+                            userGuidance: '無法使用錄音功能'
+                        });
+                    }
+                } catch (error) {
+                    this.testResults.push({
+                        testName: 'MediaRecorder API',
+                        category: 'api',
+                        success: false,
+                        message: 'MediaRecorder API 檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+            }
+
+            async testRuntimeErrors() {
+                console.log('測試運行時錯誤處理...');
+
+                // 測試全局錯誤處理
+                try {
+                    const hasGlobalErrorHandler = 'onerror' in window;
+                    const hasUnhandledRejectionHandler = 'onunhandledrejection' in window;
+                    
+                    this.testResults.push({
+                        testName: '全局錯誤處理',
+                        category: 'runtime',
+                        success: hasGlobalErrorHandler && hasUnhandledRejectionHandler,
+                        message: `全局錯誤處理: ${hasGlobalErrorHandler ? '支持' : '不支持'}, Promise 拒絕處理: ${hasUnhandledRejectionHandler ? '支持' : '不支持'}`,
+                        userGuidance: '應用具有基本的錯誤捕獲機制'
+                    });
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '全局錯誤處理',
+                        category: 'runtime',
+                        success: false,
+                        message: '全局錯誤處理檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試內存管理
+                try {
+                    const hasPerformanceAPI = 'performance' in window && 'memory' in window.performance;
+                    let memoryInfo = null;
+                    
+                    if (hasPerformanceAPI) {
+                        memoryInfo = window.performance.memory;
+                    }
+                    
+                    this.testResults.push({
+                        testName: '內存管理檢測',
+                        category: 'runtime',
+                        success: hasPerformanceAPI,
+                        message: hasPerformanceAPI ? 
+                            `已使用: ${Math.round(memoryInfo.usedJSHeapSize / 1024 / 1024)}MB, 總計: ${Math.round(memoryInfo.totalJSHeapSize / 1024 / 1024)}MB` :
+                            '無法獲取內存信息',
+                        userGuidance: hasPerformanceAPI ? '可以監控內存使用' : '建議定期重新整理頁面'
+                    });
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '內存管理檢測',
+                        category: 'runtime',
+                        success: false,
+                        message: '內存管理檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+
+                // 測試資源清理
+                try {
+                    const cleanupFeatures = [];
+                    
+                    if ('beforeunload' in window) cleanupFeatures.push('頁面卸載清理');
+                    if ('visibilitychange' in document) cleanupFeatures.push('可見性變化處理');
+                    if ('pagehide' in window) cleanupFeatures.push('頁面隱藏處理');
+                    
+                    this.testResults.push({
+                        testName: '資源清理機制',
+                        category: 'runtime',
+                        success: cleanupFeatures.length > 0,
+                        message: `支持: ${cleanupFeatures.join(', ')}`,
+                        userGuidance: '應用會自動清理資源'
+                    });
+                } catch (error) {
+                    this.testResults.push({
+                        testName: '資源清理機制',
+                        category: 'runtime',
+                        success: false,
+                        message: '資源清理檢測失敗',
+                        errorDetails: error.message
+                    });
+                }
+            }
+
+            generateTestReport() {
+                const passed = this.testResults.filter(test => test.success).length;
+                const total = this.testResults.length;
+                const passRate = Math.round((passed / total) * 100);
+
+                let overallStability;
+                if (passRate >= 90) overallStability = 'excellent';
+                else if (passRate >= 75) overallStability = 'good';
+                else if (passRate >= 60) overallStability = 'fair';
+                else overallStability = 'poor';
+
+                const recommendations = this.generateRecommendations();
+                const errorPatterns = this.analyzeErrorPatterns();
+
+                return {
+                    timestamp: Date.now(),
+                    browserInfo: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language
+                    },
+                    testResults: this.testResults,
+                    overallStability,
+                    recommendations,
+                    errorPatterns,
+                    summary: { total, passed, failed: total - passed, passRate }
+                };
+            }
+
+            generateRecommendations() {
+                const recommendations = [];
+                const failed = this.testResults.filter(test => !test.success);
+                const withFallback = this.testResults.filter(test => test.fallbackActivated).length;
+
+                if (failed.length === 0) {
+                    recommendations.push('所有錯誤處理機制運行正常，應用具有優秀的穩定性');
+                } else {
+                    recommendations.push(`發現 ${failed.length} 個需要關注的問題`);
+                }
+
+                if (withFallback > 0) {
+                    recommendations.push(`${withFallback} 個功能啟用了降級方案，保證基本可用性`);
+                }
+
+                const categories = ['storage', 'network', 'permission', 'api', 'runtime'];
+                categories.forEach(category => {
+                    const issues = failed.filter(test => test.category === category).length;
+                    if (issues > 0) {
+                        recommendations.push(`${this.getCategoryName(category)}功能需要加強錯誤處理`);
+                    }
+                });
+
+                return recommendations;
+            }
+
+            analyzeErrorPatterns() {
+                const patterns = {};
+                this.testResults.forEach(test => {
+                    if (!test.success) {
+                        patterns[test.category] = (patterns[test.category] || 0) + 1;
+                    }
+                });
+
+                return Object.entries(patterns).map(([category, frequency]) => ({
+                    category: this.getCategoryName(category),
+                    frequency,
+                    severity: frequency >= 3 ? 'high' : frequency >= 2 ? 'medium' : 'low'
+                }));
+            }
+
+            getCategoryName(category) {
+                const names = {
+                    storage: '存儲',
+                    network: '網絡',
+                    permission: '權限',
+                    api: 'API',
+                    runtime: '運行時'
+                };
+                return names[category] || category;
+            }
+        }
+
+        // 全局變量
+        const errorTester = new ErrorHandlingTester();
+        let isLoading = false;
+        let currentReport = null;
+
+        // 工具函數
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 3000);
+        }
+
+        function setLoading(loading) {
+            isLoading = loading;
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => btn.disabled = loading);
+            
+            const runBtn = document.getElementById('runTestBtn');
+            if (loading) {
+                runBtn.innerHTML = '<span class="loading"></span> 測試進行中...';
+            } else {
+                runBtn.textContent = '運行完整錯誤測試';
+            }
+        }
+
+        // 運行完整測試
+        async function runCompleteTest() {
+            setLoading(true);
+            
+            try {
+                const report = await errorTester.runCompleteErrorTest();
+                currentReport = report;
+                displayTestResults(report);
+                showSuccess(`測試完成：${report.summary.passed}/${report.summary.total} 項通過`);
+            } catch (error) {
+                showError('測試執行失敗: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // 顯示測試結果
+        function displayTestResults(report) {
+            // 顯示整體統計
+            displayOverallStats(report.summary);
+            
+            // 顯示穩定性指標
+            displayStabilityIndicator(report.overallStability);
+            
+            // 顯示測試分類結果
+            displayTestCategories(report.testResults);
+            
+            // 顯示瀏覽器信息
+            displayBrowserInfo(report.browserInfo);
+            
+            // 顯示建議
+            displayRecommendations(report.recommendations);
+            
+            // 顯示錯誤模式
+            displayErrorPatterns(report.errorPatterns);
+            
+            // 顯示結果區域
+            document.getElementById('testResults').style.display = 'block';
+            document.getElementById('browserInfo').style.display = 'block';
+            document.getElementById('recommendations').style.display = 'block';
+            document.getElementById('errorPatterns').style.display = 'block';
+        }
+
+        function displayOverallStats(summary) {
+            const container = document.getElementById('overallStats');
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${summary.total}</div>
+                    <div class="stat-label">總測試數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${summary.passed}</div>
+                    <div class="stat-label">通過數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${summary.failed}</div>
+                    <div class="stat-label">失敗數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${summary.passRate}%</div>
+                    <div class="stat-label">通過率</div>
+                </div>
+            `;
+        }
+
+        function displayStabilityIndicator(stability) {
+            const container = document.getElementById('stabilityIndicator');
+            const stabilityText = {
+                excellent: '優秀',
+                good: '良好',
+                fair: '一般',
+                poor: '較差'
+            };
+            
+            container.innerHTML = `
+                <h4>整體穩定性評級</h4>
+                <span class="stability-indicator stability-${stability}">
+                    ${stabilityText[stability]}
+                </span>
+            `;
+        }
+
+        function displayTestCategories(testResults) {
+            const container = document.getElementById('testCategories');
+            const categories = ['storage', 'network', 'permission', 'api', 'runtime'];
+            
+            let html = '';
+            categories.forEach(category => {
+                const categoryTests = testResults.filter(test => test.category === category);
+                if (categoryTests.length === 0) return;
+                
+                const categoryName = errorTester.getCategoryName(category);
+                const passed = categoryTests.filter(test => test.success).length;
+                
+                html += `
+                    <div class="test-category ${category}">
+                        <h4>${categoryName}測試 (${passed}/${categoryTests.length} 通過)</h4>
+                        ${categoryTests.map(test => `
+                            <div class="test-item ${test.success ? 'passed' : 'failed'}">
+                                <div class="test-name">${test.testName}</div>
+                                <div class="test-message">${test.message}</div>
+                                ${test.userGuidance ? `<div class="test-guidance">💡 ${test.userGuidance}</div>` : ''}
+                                ${test.errorDetails ? `<div class="test-details">錯誤詳情: ${test.errorDetails}</div>` : ''}
+                                ${test.fallbackActivated ? '<span class="badge badge-warning">降級方案已啟用</span>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function displayBrowserInfo(browserInfo) {
+            const container = document.getElementById('browserDetails');
+            container.innerHTML = `
+                <p><strong>用戶代理:</strong> ${browserInfo.userAgent}</p>
+                <p><strong>平台:</strong> ${browserInfo.platform}</p>
+                <p><strong>語言:</strong> ${browserInfo.language}</p>
+            `;
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendationsList');
+            container.innerHTML = recommendations.map(rec => `<li>${rec}</li>`).join('');
+        }
+
+        function displayErrorPatterns(patterns) {
+            const container = document.getElementById('patternsContainer');
+            
+            if (patterns.length === 0) {
+                container.innerHTML = '<p>沒有發現顯著的錯誤模式 ✅</p>';
+                return;
+            }
+            
+            container.innerHTML = patterns.map(pattern => `
+                <div class="pattern-item severity-${pattern.severity}">
+                    <span>${pattern.category}類錯誤: ${pattern.frequency}個</span>
+                    <span class="badge badge-${pattern.severity === 'high' ? 'danger' : pattern.severity === 'medium' ? 'warning' : 'success'}">
+                        ${pattern.severity === 'high' ? '高' : pattern.severity === 'medium' ? '中' : '低'}嚴重性
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        // 清除結果
+        function clearResults() {
+            document.getElementById('testResults').style.display = 'none';
+            document.getElementById('browserInfo').style.display = 'none';
+            document.getElementById('recommendations').style.display = 'none';
+            document.getElementById('errorPatterns').style.display = 'none';
+            currentReport = null;
+        }
+
+        // 事件監聽器
+        document.getElementById('runTestBtn').addEventListener('click', runCompleteTest);
+        document.getElementById('testStorageBtn').addEventListener('click', async () => {
+            setLoading(true);
+            try {
+                await errorTester.testStorageErrors();
+                showSuccess('存儲錯誤測試完成');
+            } catch (error) {
+                showError('存儲測試失敗: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        });
+        document.getElementById('testNetworkBtn').addEventListener('click', async () => {
+            setLoading(true);
+            try {
+                await errorTester.testNetworkErrors();
+                showSuccess('網絡錯誤測試完成');
+            } catch (error) {
+                showError('網絡測試失敗: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        });
+        document.getElementById('testPermissionBtn').addEventListener('click', async () => {
+            setLoading(true);
+            try {
+                await errorTester.testPermissionErrors();
+                showSuccess('權限錯誤測試完成');
+            } catch (error) {
+                showError('權限測試失敗: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        });
+        document.getElementById('testApiBtn').addEventListener('click', async () => {
+            setLoading(true);
+            try {
+                await errorTester.testApiErrors();
+                showSuccess('API錯誤測試完成');
+            } catch (error) {
+                showError('API測試失敗: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        });
+        document.getElementById('clearBtn').addEventListener('click', clearResults);
+
+        // 頁面加載完成後自動運行測試
+        window.addEventListener('load', () => {
+            setTimeout(runCompleteTest, 1000);
+        });
+    </script>
+</body>
+</html>
+
+

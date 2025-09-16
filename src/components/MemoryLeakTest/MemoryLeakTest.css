@@ -1,0 +1,147 @@
+.memory-leak-test {
+  /* 容器样式 */
+}
+
+.memory-leak-test .MuiLinearProgress-root {
+  border-radius: 4px;
+  height: 6px;
+}
+
+.memory-leak-test .MuiCard-root {
+  transition: all 0.3s ease;
+}
+
+.memory-leak-test .MuiCard-root:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.memory-leak-test .MuiAlert-root {
+  border-radius: 8px;
+}
+
+.memory-leak-test .MuiChip-root {
+  font-weight: 600;
+}
+
+/* 内存监控样式 */
+.memory-leak-test .memory-monitor {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.05), rgba(33, 150, 243, 0.02));
+  border: 1px solid rgba(33, 150, 243, 0.1);
+}
+
+/* 测试状态指示器 */
+.memory-leak-test .status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.memory-leak-test .status-pending {
+  background: rgba(158, 158, 158, 0.1);
+  color: #9e9e9e;
+}
+
+.memory-leak-test .status-running {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+}
+
+.memory-leak-test .status-completed {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.memory-leak-test .status-failed {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+/* 严重程度样式 */
+.memory-leak-test .severity-low {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.memory-leak-test .severity-medium {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.memory-leak-test .severity-high {
+  background: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.memory-leak-test .severity-critical {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* 结果卡片动画 */
+.memory-leak-test .result-card {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideInUp 0.3s ease forwards;
+}
+
+@keyframes slideInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 进度条样式 */
+.memory-leak-test .MuiLinearProgress-bar {
+  border-radius: 4px;
+}
+
+/* 展开图标动画 */
+.memory-leak-test .expand-icon {
+  transition: transform 0.3s ease;
+}
+
+.memory-leak-test .expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .memory-leak-test .control-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .memory-leak-test .MuiButton-root {
+    margin-bottom: 8px;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .memory-leak-test .MuiCard-root {
+    border: 2px solid;
+  }
+  
+  .memory-leak-test .MuiChip-root {
+    border: 1px solid;
+  }
+}
+
+/* 减少动画模式 */
+@media (prefers-reduced-motion: reduce) {
+  .memory-leak-test * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

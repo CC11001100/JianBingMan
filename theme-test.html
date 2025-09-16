@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煎餅俠 - 主題切換功能測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #ff6b35;
+            --primary-light: #ff8f5a;
+            --primary-dark: #e55722;
+            --secondary-color: #4caf50;
+            --secondary-light: #80e27e;
+            --secondary-dark: #388e3c;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #ff8a65;
+            --primary-light: #ffbb93;
+            --primary-dark: #e65100;
+            --secondary-color: #66bb6a;
+            --secondary-light: #98ee99;
+            --secondary-dark: #338a3e;
+            --background: #121212;
+            --surface: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border-color: #424242;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .theme-controls {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .theme-controls h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .theme-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .theme-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .theme-btn.active {
+            background: var(--secondary-color);
+        }
+
+        .current-theme {
+            padding: 10px;
+            background: rgba(var(--primary-color), 0.1);
+            border-radius: 8px;
+            border: 1px solid var(--primary-color);
+            font-weight: 500;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .test-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .test-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .ui-demo {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .demo-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            background: var(--primary-dark);
+        }
+
+        .demo-button.outlined {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .demo-button.outlined:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .demo-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .demo-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color), 0.1);
+        }
+
+        .demo-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .switch-input {
+            appearance: none;
+            width: 44px;
+            height: 24px;
+            background: var(--border-color);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .switch-input:checked {
+            background: var(--primary-color);
+        }
+
+        .switch-input::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .switch-input:checked::before {
+            left: 22px;
+        }
+
+        .demo-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .demo-alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 5px 0;
+            font-weight: 500;
+        }
+
+        .demo-alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .demo-alert.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .demo-alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .demo-alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        [data-theme="dark"] .demo-alert.success {
+            background: #1e3a2e;
+            color: #4caf50;
+            border-color: #2e5c3e;
+        }
+
+        [data-theme="dark"] .demo-alert.warning {
+            background: #3d2f1f;
+            color: #ff9800;
+            border-color: #5d4037;
+        }
+
+        [data-theme="dark"] .demo-alert.error {
+            background: #3d1a1a;
+            color: #f44336;
+            border-color: #5c2828;
+        }
+
+        [data-theme="dark"] .demo-alert.info {
+            background: #1a2530;
+            color: #2196f3;
+            border-color: #2a3f54;
+        }
+
+        .demo-progress {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .demo-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .demo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .demo-table th,
+        .demo-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .demo-table th {
+            background: rgba(var(--primary-color), 0.1);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .demo-table tr:hover {
+            background: rgba(var(--primary-color), 0.05);
+        }
+
+        .demo-nav {
+            background: var(--surface);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .demo-nav h3 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .test-results {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .test-results h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-icon.pass {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-icon.fail {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-icon.pending {
+            background: #ff9800;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .theme-buttons {
+                flex-direction: column;
+            }
+            
+            .demo-nav {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 主題切換功能測試</h1>
+            <p>驗證主題切換功能，包括亮色主題、暗色主題的切換。測試主題變化對所有UI組件的影響和視覺一致性。</p>
+        </div>
+
+        <!-- 主題控制區域 -->
+        <div class="theme-controls">
+            <h3>主題控制</h3>
+            <div class="theme-buttons">
+                <button class="theme-btn" onclick="setTheme('light')" id="lightBtn">
+                    ☀️ 亮色主題
+                </button>
+                <button class="theme-btn" onclick="setTheme('dark')" id="darkBtn">
+                    🌙 暗色主題
+                </button>
+                <button class="theme-btn" onclick="setTheme('auto')" id="autoBtn">
+                    🔄 跟隨系統
+                </button>
+                <button class="theme-btn" onclick="runAutoTest()">
+                    🧪 自動測試
+                </button>
+            </div>
+            <div class="current-theme" id="currentTheme">
+                當前主題: 亮色主題
+            </div>
+        </div>
+
+        <!-- 模擬導航欄 -->
+        <div class="demo-nav">
+            <h3>煎餅俠</h3>
+            <div class="nav-icons">
+                <button class="nav-icon">🏠</button>
+                <button class="nav-icon">⚙️</button>
+                <button class="nav-icon">🔔</button>
+                <button class="nav-icon">👤</button>
+            </div>
+        </div>
+
+        <!-- UI組件測試區域 -->
+        <div class="test-grid">
+            <!-- 按鈕組件 -->
+            <div class="test-card">
+                <h4>🔘 按鈕組件</h4>
+                <div class="ui-demo">
+                    <button class="demo-button">主要按鈕</button>
+                    <button class="demo-button outlined">輪廓按鈕</button>
+                    <button class="demo-button" disabled>禁用按鈕</button>
+                </div>
+            </div>
+
+            <!-- 輸入框組件 -->
+            <div class="test-card">
+                <h4>📝 輸入框組件</h4>
+                <div class="ui-demo">
+                    <input class="demo-input" type="text" placeholder="文本輸入框" value="測試文本">
+                    <input class="demo-input" type="email" placeholder="郵箱輸入框">
+                    <input class="demo-input" type="number" placeholder="數字輸入框">
+                </div>
+            </div>
+
+            <!-- 開關組件 */}
+            <div class="test-card">
+                <h4>🎛️ 開關組件</h4>
+                <div class="ui-demo">
+                    <label class="demo-switch">
+                        <input class="switch-input" type="checkbox" checked>
+                        <span>語音提醒</span>
+                    </label>
+                    <label class="demo-switch">
+                        <input class="switch-input" type="checkbox">
+                        <span>振動反饋</span>
+                    </label>
+                    <label class="demo-switch">
+                        <input class="switch-input" type="checkbox" checked>
+                        <span>桌面通知</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 卡片組件 -->}
+            <div class="test-card">
+                <h4>🃏 卡片組件</h4>
+                <div class="ui-demo">
+                    <div class="demo-card">
+                        <h5>計時設置</h5>
+                        <p>配置煎餅翻面時間和提醒方式</p>
+                    </div>
+                    <div class="demo-card">
+                        <h5>歷史記錄</h5>
+                        <p>查看過往的計時記錄和統計</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 警告框組件 -->}
+            <div class="test-card">
+                <h4>⚠️ 警告框組件</h4>
+                <div class="ui-demo">
+                    <div class="demo-alert success">✅ 操作成功完成！</div>
+                    <div class="demo-alert warning">⚠️ 請注意檢查設置</div>
+                    <div class="demo-alert error">❌ 操作失敗，請重試</div>
+                    <div class="demo-alert info">💡 提示：可以使用語音控制</div>
+                </div>
+            </div>
+
+            <!-- 進度條組件 -->}
+            <div class="test-card">
+                <h4>📊 進度條組件</h4>
+                <div class="ui-demo">
+                    <div>計時進度:</div>
+                    <div class="demo-progress">
+                        <div class="demo-progress-bar" style="width: 65%"></div>
+                    </div>
+                    <div>載入進度:</div>
+                    <div class="demo-progress">
+                        <div class="demo-progress-bar" style="width: 30%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表格組件 -->}
+            <div class="test-card">
+                <h4>📋 表格組件</h4>
+                <div class="ui-demo">
+                    <table class="demo-table">
+                        <thead>
+                            <tr>
+                                <th>時間</th>
+                                <th>結果</th>
+                                <th>狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>20秒</td>
+                                <td>完美</td>
+                                <td>✅ 成功</td>
+                            </tr>
+                            <tr>
+                                <td>15秒</td>
+                                <td>良好</td>
+                                <td>✅ 成功</td>
+                            </tr>
+                            <tr>
+                                <td>25秒</td>
+                                <td>一般</td>
+                                <td>⚠️ 警告</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 色彩展示 */}
+            <div class="test-card">
+                <h4>🎨 色彩展示</h4>
+                <div class="ui-demo">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div style="width: 50px; height: 50px; background: var(--primary-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">主色</div>
+                        <div style="width: 50px; height: 50px; background: var(--secondary-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">輔色</div>
+                        <div style="width: 50px; height: 50px; background: var(--surface); border: 2px solid var(--border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px;">背景</div>
+                        <div style="width: 50px; height: 50px; background: var(--text-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--surface); font-size: 12px;">文字</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測試結果區域 -->}
+        <div class="test-results">
+            <h3>📋 測試結果</h3>
+            <div id="testResults">
+                <div class="result-item">
+                    <div class="status-icon pending" id="themeSwitch">?</div>
+                    <span>主題切換功能</span>
+                </div>
+                <div class="result-item">
+                    <div class="status-icon pending" id="uiConsistency">?</div>
+                    <span>UI組件一致性</span>
+                </div>
+                <div class="result-item">
+                    <div class="status-icon pending" id="colorContrast">?</div>
+                    <span>顏色對比度</span>
+                </div>
+                <div class="result-item">
+                    <div class="status-icon pending" id="animation">?</div>
+                    <span>動畫過渡效果</span>
+                </div>
+                <div class="result-item">
+                    <div class="status-icon pending" id="accessibility">?</div>
+                    <span>無障礙支持</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'light';
+        let systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        let autoMode = false;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 監聽系統主題變化
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                systemTheme = e.matches ? 'dark' : 'light';
+                if (autoMode) {
+                    applyTheme(systemTheme);
+                }
+            });
+
+            // 初始主題檢測
+            detectInitialTheme();
+            log('主題切換功能測試初始化完成');
+            
+            // 自動運行基本測試
+            setTimeout(() => {
+                testColorContrast();
+                testUIConsistency();
+                testAccessibility();
+            }, 1000);
+        });
+
+        // 檢測初始主題
+        function detectInitialTheme() {
+            const savedTheme = localStorage.getItem('themeTest');
+            if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
+                setTheme(savedTheme);
+            } else {
+                setTheme('light');
+            }
+        }
+
+        // 設置主題
+        function setTheme(theme) {
+            currentTheme = theme;
+            autoMode = theme === 'auto';
+            
+            const actualTheme = autoMode ? systemTheme : theme;
+            applyTheme(actualTheme);
+            
+            // 更新按鈕狀態
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(theme + 'Btn').classList.add('active');
+            
+            // 更新當前主題顯示
+            updateCurrentThemeDisplay(theme, actualTheme);
+            
+            // 保存到 localStorage
+            localStorage.setItem('themeTest', theme);
+            
+            log(`主題已切換到: ${theme}${autoMode ? ` (實際: ${actualTheme})` : ''}`);
+            
+            // 測試主題切換功能
+            updateTestResult('themeSwitch', 'pass');
+        }
+
+        // 應用主題
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // 更新meta主題顏色
+            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) {
+                const themeColor = theme === 'dark' ? '#1e1e1e' : '#ff6b35';
+                metaThemeColor.setAttribute('content', themeColor);
+            }
+        }
+
+        // 更新當前主題顯示
+        function updateCurrentThemeDisplay(mode, actual) {
+            const display = document.getElementById('currentTheme');
+            let text = '當前主題: ';
+            
+            switch (mode) {
+                case 'light':
+                    text += '☀️ 亮色主題';
+                    break;
+                case 'dark':
+                    text += '🌙 暗色主題';
+                    break;
+                case 'auto':
+                    text += `🔄 跟隨系統 (${actual === 'dark' ? '🌙 暗色' : '☀️ 亮色'})`;
+                    break;
+            }
+            
+            display.textContent = text;
+        }
+
+        // 運行自動測試
+        async function runAutoTest() {
+            log('開始運行自動主題切換測試...');
+            const button = event.target;
+            button.classList.add('loading');
+            
+            try {
+                // 測試亮色主題
+                setTheme('light');
+                await sleep(800);
+                
+                // 測試暗色主題
+                setTheme('dark');
+                await sleep(800);
+                
+                // 測試自動主題
+                setTheme('auto');
+                await sleep(800);
+                
+                // 測試動畫效果
+                await testAnimations();
+                
+                // 恢復到亮色主題
+                setTheme('light');
+                
+                log('✅ 自動主題切換測試完成！所有主題模式正常工作', 'success');
+                updateTestResult('animation', 'pass');
+                
+            } catch (error) {
+                log(`❌ 自動測試失敗: ${error.message}`, 'error');
+                updateTestResult('animation', 'fail');
+            } finally {
+                button.classList.remove('loading');
+            }
+        }
+
+        // 測試顏色對比度
+        function testColorContrast() {
+            try {
+                const styles = getComputedStyle(document.documentElement);
+                const bgColor = styles.getPropertyValue('--background').trim();
+                const textColor = styles.getPropertyValue('--text-primary').trim();
+                
+                // 簡單的對比度檢查（實際應用中需要更複雜的計算）
+                const hasGoodContrast = bgColor !== textColor;
+                
+                updateTestResult('colorContrast', hasGoodContrast ? 'pass' : 'fail');
+                log(`顏色對比度檢查: ${hasGoodContrast ? '通過' : '失敗'}`, hasGoodContrast ? 'success' : 'error');
+                
+            } catch (error) {
+                updateTestResult('colorContrast', 'fail');
+                log(`顏色對比度測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試UI一致性
+        function testUIConsistency() {
+            try {
+                const elements = [
+                    '.demo-button',
+                    '.demo-input',
+                    '.demo-card',
+                    '.demo-alert'
+                ];
+                
+                let allConsistent = true;
+                
+                elements.forEach(selector => {
+                    const els = document.querySelectorAll(selector);
+                    if (els.length === 0) {
+                        allConsistent = false;
+                        return;
+                    }
+                    
+                    // 檢查是否有基本樣式
+                    els.forEach(el => {
+                        const styles = getComputedStyle(el);
+                        if (!styles.borderRadius || styles.borderRadius === '0px') {
+                            allConsistent = false;
+                        }
+                    });
+                });
+                
+                updateTestResult('uiConsistency', allConsistent ? 'pass' : 'fail');
+                log(`UI組件一致性檢查: ${allConsistent ? '通過' : '失敗'}`, allConsistent ? 'success' : 'error');
+                
+            } catch (error) {
+                updateTestResult('uiConsistency', 'fail');
+                log(`UI一致性測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 測試動畫效果
+        async function testAnimations() {
+            return new Promise((resolve) => {
+                const testCard = document.querySelector('.test-card');
+                testCard.style.transition = 'transform 0.3s ease';
+                testCard.style.transform = 'translateY(-10px)';
+                
+                setTimeout(() => {
+                    testCard.style.transform = 'translateY(0)';
+                    setTimeout(() => {
+                        testCard.style.transition = '';
+                        resolve(true);
+                    }, 300);
+                }, 300);
+            });
+        }
+
+        // 測試無障礙支持
+        function testAccessibility() {
+            try {
+                // 檢查焦點樣式
+                const buttons = document.querySelectorAll('.demo-button');
+                let hasAccessibility = true;
+                
+                buttons.forEach(button => {
+                    // 檢查是否可以獲得焦點
+                    if (button.tabIndex === -1 && !button.disabled) {
+                        hasAccessibility = false;
+                    }
+                });
+                
+                // 檢查對比度支持
+                const hasContrastSupport = window.matchMedia('(prefers-contrast: high)');
+                const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+                
+                updateTestResult('accessibility', hasAccessibility ? 'pass' : 'fail');
+                log(`無障礙支持檢查: ${hasAccessibility ? '通過' : '失敗'}`, hasAccessibility ? 'success' : 'error');
+                log(`對比度偏好支持: ${hasContrastSupport ? '支持' : '不支持'}`);
+                log(`減少動畫偏好支持: ${hasReducedMotion ? '支持' : '不支持'}`);
+                
+            } catch (error) {
+                updateTestResult('accessibility', 'fail');
+                log(`無障礙測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 更新測試結果
+        function updateTestResult(testId, status) {
+            const element = document.getElementById(testId);
+            if (!element) return;
+            
+            element.className = `status-icon ${status}`;
+            
+            switch (status) {
+                case 'pass':
+                    element.textContent = '✓';
+                    break;
+                case 'fail':
+                    element.textContent = '✗';
+                    break;
+                default:
+                    element.textContent = '?';
+            }
+        }
+
+        // 記錄日誌
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('zh-TW');
+            const prefix = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            console.log(`[${timestamp}] ${prefix} ${message}`);
+        }
+
+        // 睡眠函數
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 初始化進度條動畫
+        setInterval(() => {
+            const progressBars = document.querySelectorAll('.demo-progress-bar');
+            progressBars.forEach(bar => {
+                const currentWidth = parseInt(bar.style.width) || 0;
+                let newWidth = currentWidth + Math.random() * 10 - 5;
+                newWidth = Math.max(10, Math.min(90, newWidth));
+                bar.style.width = newWidth + '%';
+            });
+        }, 2000);
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,237 @@
+.pancake-timer-test {
+  /* 容器样式 */
+}
+
+.pancake-timer-test .MuiLinearProgress-root {
+  border-radius: 4px;
+  height: 8px;
+}
+
+.pancake-timer-test .MuiCard-root {
+  transition: all 0.3s ease;
+}
+
+.pancake-timer-test .MuiCard-root:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.pancake-timer-test .MuiAlert-root {
+  border-radius: 8px;
+}
+
+.pancake-timer-test .MuiChip-root {
+  font-weight: 600;
+}
+
+/* 测试状态样式 */
+.pancake-timer-test .test-status-pending {
+  color: #9e9e9e;
+}
+
+.pancake-timer-test .test-status-running {
+  color: #2196f3;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.pancake-timer-test .test-status-passed {
+  color: #4caf50;
+}
+
+.pancake-timer-test .test-status-failed {
+  color: #f44336;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* 统计卡片样式 */
+.pancake-timer-test .stats-card {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.05), rgba(33, 150, 243, 0.02));
+  border: 1px solid rgba(33, 150, 243, 0.1);
+}
+
+/* 测试结果卡片动画 */
+.pancake-timer-test .test-result-card {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: slideInUp 0.3s ease forwards;
+}
+
+@keyframes slideInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 断言结果样式 */
+.pancake-timer-test .assertion-success {
+  border-left: 4px solid #4caf50;
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.pancake-timer-test .assertion-failure {
+  border-left: 4px solid #f44336;
+  background: rgba(244, 67, 54, 0.05);
+}
+
+/* 进度指示器 */
+.pancake-timer-test .progress-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* 测试类别标签 */
+.pancake-timer-test .category-basic {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.pancake-timer-test .category-interaction {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+}
+
+.pancake-timer-test .category-state {
+  background: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+}
+
+.pancake-timer-test .category-performance {
+  background: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+}
+
+.pancake-timer-test .category-edge-case {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+/* 代码块样式 */
+.pancake-timer-test .code-block {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #333;
+  overflow-x: auto;
+}
+
+/* 详细信息展开动画 */
+.pancake-timer-test .expand-icon {
+  transition: transform 0.3s ease;
+}
+
+.pancake-timer-test .expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+/* 测试运行时的视觉反馈 */
+.pancake-timer-test .running-test {
+  position: relative;
+  overflow: hidden;
+}
+
+.pancake-timer-test .running-test::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #2196f3, transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* 成功/失败状态的视觉指示 */
+.pancake-timer-test .test-passed {
+  border-left: 4px solid #4caf50;
+}
+
+.pancake-timer-test .test-failed {
+  border-left: 4px solid #f44336;
+}
+
+.pancake-timer-test .test-running {
+  border-left: 4px solid #2196f3;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .pancake-timer-test .control-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .pancake-timer-test .MuiButton-root {
+    margin-bottom: 8px;
+  }
+  
+  .pancake-timer-test .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .pancake-timer-test .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .pancake-timer-test .MuiCard-root {
+    border: 2px solid;
+  }
+  
+  .pancake-timer-test .MuiChip-root {
+    border: 1px solid;
+  }
+  
+  .pancake-timer-test .code-block {
+    border: 2px solid #000;
+  }
+}
+
+/* 减少动画模式 */
+@media (prefers-reduced-motion: reduce) {
+  .pancake-timer-test * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .pancake-timer-test .expand-icon {
+    transition: none !important;
+  }
+}
+
+

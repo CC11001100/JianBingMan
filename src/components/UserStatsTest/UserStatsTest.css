@@ -1,0 +1,381 @@
+/**
+ * 用戶使用統計測試組件樣式
+ */
+
+.user-stats-test {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* 卡片樣式優化 */
+.user-stats-test .MuiCard-root {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  transition: box-shadow 0.3s ease;
+}
+
+.user-stats-test .MuiCard-root:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 統計數字樣式 */
+.user-stats-test .MuiTypography-h4,
+.user-stats-test .MuiTypography-h5,
+.user-stats-test .MuiTypography-h6 {
+  font-weight: 600;
+}
+
+/* 按鈕組樣式 */
+.user-stats-test .MuiButton-root {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 500;
+  padding: 8px 16px;
+  min-width: 120px;
+}
+
+.user-stats-test .MuiButton-contained {
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
+}
+
+.user-stats-test .MuiButton-contained:hover {
+  box-shadow: 0 4px 8px rgba(25, 118, 210, 0.4);
+}
+
+/* 進度條樣式 */
+.user-stats-test .MuiLinearProgress-root {
+  border-radius: 4px;
+  height: 6px;
+}
+
+/* 警告和成功消息樣式 */
+.user-stats-test .MuiAlert-root {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 芯片組件樣式 */
+.user-stats-test .MuiChip-root {
+  margin: 2px;
+  font-weight: 500;
+}
+
+.user-stats-test .MuiChip-colorPrimary {
+  background: linear-gradient(45deg, #2196F3 30%, #21CBF3 90%);
+  color: white;
+}
+
+.user-stats-test .MuiChip-colorSecondary {
+  background: linear-gradient(45deg, #FF6B6B 30%, #FFE66D 90%);
+  color: white;
+}
+
+/* 表格樣式 */
+.user-stats-test .MuiTableContainer-root {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-stats-test .MuiTableHead-root {
+  background-color: #f5f5f5;
+}
+
+.user-stats-test .MuiTableHead-root .MuiTableCell-root {
+  font-weight: 600;
+  color: #333;
+}
+
+.user-stats-test .MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+/* 列表樣式 */
+.user-stats-test .MuiListItem-root {
+  border-radius: 8px;
+  margin: 4px 0;
+  transition: background-color 0.2s ease;
+}
+
+.user-stats-test .MuiListItem-root:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* 徽章樣式 */
+.user-stats-test .MuiBadge-colorSuccess .MuiBadge-badge {
+  background-color: #4CAF50;
+}
+
+.user-stats-test .MuiBadge-colorDefault .MuiBadge-badge {
+  background-color: #9E9E9E;
+}
+
+/* 週使用分佈可視化 */
+.user-stats-test .weekday-usage-chart {
+  display: flex;
+  gap: 4px;
+  align-items: end;
+  height: 60px;
+  padding: 8px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.user-stats-test .weekday-bar {
+  min-height: 8px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.user-stats-test .weekday-bar:hover {
+  opacity: 0.8 !important;
+  transform: translateY(-2px);
+}
+
+/* 手風琴樣式 */
+.user-stats-test .MuiAccordion-root {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  margin: 8px 0 !important;
+}
+
+.user-stats-test .MuiAccordion-root:before {
+  display: none;
+}
+
+.user-stats-test .MuiAccordionSummary-root {
+  background-color: rgba(25, 118, 210, 0.04);
+  border-radius: 8px;
+}
+
+.user-stats-test .MuiAccordionSummary-root:hover {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+/* 對話框樣式 */
+.user-stats-test .MuiDialog-paper {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.user-stats-test .MuiDialogTitle-root {
+  background: linear-gradient(45deg, #2196F3 30%, #21CBF3 90%);
+  color: white;
+  font-weight: 600;
+}
+
+/* 表單控件樣式 */
+.user-stats-test .MuiFormControlLabel-root {
+  margin: 8px 0;
+}
+
+.user-stats-test .MuiSwitch-root {
+  margin: 0 8px;
+}
+
+.user-stats-test .MuiTextField-root {
+  margin: 8px 0;
+}
+
+/* 工具提示樣式 */
+.user-stats-test .MuiTooltip-tooltip {
+  background-color: rgba(0, 0, 0, 0.9);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* 圓形進度條樣式 */
+.user-stats-test .MuiCircularProgress-root {
+  color: #2196F3;
+}
+
+/* 加載狀態樣式 */
+.user-stats-test .loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+/* 響應式設計 */
+@media (max-width: 600px) {
+  .user-stats-test {
+    padding: 16px 8px;
+  }
+  
+  .user-stats-test .MuiButton-root {
+    min-width: auto;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .user-stats-test .MuiTypography-h4 {
+    font-size: 1.5rem;
+  }
+  
+  .user-stats-test .MuiTypography-h5 {
+    font-size: 1.2rem;
+  }
+  
+  .user-stats-test .MuiCard-root {
+    margin: 8px 0;
+  }
+  
+  .user-stats-test .weekday-usage-chart {
+    height: 40px;
+  }
+}
+
+@media (max-width: 960px) {
+  .user-stats-test .MuiGrid-container {
+    margin: 0;
+    width: 100%;
+  }
+  
+  .user-stats-test .MuiGrid-item {
+    padding: 8px;
+  }
+}
+
+/* 高對比度主題支持 */
+@media (prefers-contrast: high) {
+  .user-stats-test .MuiCard-root {
+    border: 2px solid #000;
+  }
+  
+  .user-stats-test .MuiButton-outlined {
+    border-width: 2px;
+  }
+  
+  .user-stats-test .MuiChip-root {
+    border: 1px solid #000;
+  }
+}
+
+/* 深色主題支持 */
+@media (prefers-color-scheme: dark) {
+  .user-stats-test .MuiCard-root {
+    background-color: #2d2d2d;
+    color: #fff;
+  }
+  
+  .user-stats-test .weekday-usage-chart {
+    background-color: #404040;
+  }
+  
+  .user-stats-test .MuiAccordionSummary-root {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* 動畫效果 */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.user-stats-test .pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+/* 關鍵指標高亮 */
+.user-stats-test .highlight-metric {
+  position: relative;
+  overflow: hidden;
+}
+
+.user-stats-test .highlight-metric::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.user-stats-test .highlight-metric:hover::before {
+  left: 100%;
+}
+
+/* 數據可視化增強 */
+.user-stats-test .data-visualization {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-stats-test .data-visualization::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 狀態指示器 */
+.user-stats-test .status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.user-stats-test .status-indicator.active {
+  background-color: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.user-stats-test .status-indicator.inactive {
+  background-color: #9E9E9E;
+}
+
+.user-stats-test .status-indicator.warning {
+  background-color: #FF9800;
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+.user-stats-test .status-indicator.error {
+  background-color: #F44336;
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+}
+
+

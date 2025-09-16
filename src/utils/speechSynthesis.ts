@@ -34,6 +34,8 @@ class SpeechSynthesisManager {
 
   private isSupported = false
   private availableVoices: SpeechSynthesisVoice[] = []
+  private isSpeaking = false // 添加语音播放状态标志
+  private currentAudio: HTMLAudioElement | null = null // 当前播放的音频元素
 
   constructor() {
     this.init()
@@ -153,12 +155,21 @@ class SpeechSynthesisManager {
       return
     }
 
+    // 防止重复播放：如果当前正在播放，直接返回
+    if (this.isSpeaking) {
+      console.log('Speech already playing, skipping duplicate request')
+      return
+    }
+
     const finalSettings = { ...this.defaultSettings, ...settings }
 
     // 如果指定了自定义语音ID，使用自定义语音
     if (finalSettings.customVoiceId) {
       return this.playCustomVoice(finalSettings.customVoiceId, finalSettings.volume)
     }
+
+    // 标记正在播放
+    this.isSpeaking = true
 
     return new Promise((resolve, reject) => {
       // 停止当前播放的语音
@@ -181,8 +192,14 @@ class SpeechSynthesisManager {
       }
 
       // 事件监听
-      utterance.onend = () => resolve()
-      utterance.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`))
+      utterance.onend = () => {
+        this.isSpeaking = false // 播放完成，重置状态
+        resolve()
+      }
+      utterance.onerror = (event) => {
+        this.isSpeaking = false // 播放出错，重置状态
+        reject(new Error(`Speech synthesis error: ${event.error}`))
+      }
 
       // 播放语音
       speechSynthesis.speak(utterance)
@@ -193,6 +210,12 @@ class SpeechSynthesisManager {
    * 播放自定义录制的语音
    */
   async playCustomVoice(voiceId: string, volume = 0.8): Promise<void> {
+    // 防止重复播放：如果当前正在播放，直接返回
+    if (this.isSpeaking || this.currentAudio) {
+      console.log('Audio already playing, skipping duplicate request')
+      return
+    }
+
     try {
       // 从IndexedDB获取自定义语音
       const voiceRecord = await storageManager.getCustomVoice(voiceId)
@@ -203,6 +226,13 @@ class SpeechSynthesisManager {
 
       // 停止当前播放的语音
       speechSynthesis.cancel()
+      if (this.currentAudio) {
+        this.currentAudio.pause()
+        this.currentAudio = null
+      }
+
+      // 标记正在播放
+      this.isSpeaking = true
 
       // 播放自定义语音文件
       await this.playAudioBlob(voiceRecord.audioBlob, volume)
@@ -211,6 +241,7 @@ class SpeechSynthesisManager {
       await storageManager.updateVoiceLastUsed(voiceId)
     } catch (error) {
       console.error('Failed to play custom voice:', error)
+      this.isSpeaking = false // 出错时重置状态
       throw error
     }
   }
@@ -224,20 +255,33 @@ class SpeechSynthesisManager {
         const url = URL.createObjectURL(audioBlob)
         const audio = new Audio(url)
         
+        // 保存当前音频引用
+        this.currentAudio = audio
+        
         audio.volume = Math.max(0, Math.min(1, volume))
         
         audio.onended = () => {
           URL.revokeObjectURL(url)
+          this.currentAudio = null
+          this.isSpeaking = false // 播放完成，重置状态
           resolve()
         }
         
         audio.onerror = () => {
           URL.revokeObjectURL(url)
+          this.currentAudio = null
+          this.isSpeaking = false // 播放出错，重置状态
           reject(new Error('播放自定义语音失败'))
         }
         
-        audio.play().catch(reject)
+        audio.play().catch((error) => {
+          URL.revokeObjectURL(url)
+          this.currentAudio = null
+          this.isSpeaking = false // 播放出错，重置状态
+          reject(error)
+        })
       } catch (error) {
+        this.isSpeaking = false // 出错时重置状态
         reject(error)
       }
     })
@@ -311,6 +355,15 @@ class SpeechSynthesisManager {
       return
     }
 
+    // 防止重复播放：如果当前正在播放，直接返回
+    if (this.isSpeaking) {
+      console.log('Speech already playing, skipping duplicate request')
+      return
+    }
+
+    // 标记正在播放
+    this.isSpeaking = true
+
     return new Promise((resolve, reject) => {
       // 停止当前播放的语音
       speechSynthesis.cancel()
@@ -330,8 +383,14 @@ class SpeechSynthesisManager {
       }
 
       // 事件监听
-      utterance.onend = () => resolve()
-      utterance.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`))
+      utterance.onend = () => {
+        this.isSpeaking = false // 播放完成，重置状态
+        resolve()
+      }
+      utterance.onerror = (event) => {
+        this.isSpeaking = false // 播放出错，重置状态
+        reject(new Error(`Speech synthesis error: ${event.error}`))
+      }
 
       // 播放语音
       speechSynthesis.speak(utterance)

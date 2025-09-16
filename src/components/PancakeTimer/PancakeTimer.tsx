@@ -19,12 +19,16 @@ import {
   Settings as SettingsIcon,
   Timer as TimerIcon,
   Lightbulb as LightbulbIcon,
-  LightbulbOutlined as LightbulbOutlinedIcon
+  LightbulbOutlined as LightbulbOutlinedIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon
 } from '@mui/icons-material'
 import { storageManager, type PancakeSettings } from '../../utils/storage'
 import { speechManager } from '../../utils/speechSynthesis'
 import { wakeLockManager } from '../../utils/wakeLock'
 import { soundEffectsManager } from '../../utils/soundEffects'
+import { notificationManager } from '../../utils/notification'
+import { pageVisibilityManager } from '../../utils/pageVisibility'
 import SettingsDialog from './SettingsDialog'
 import CalibrationDialog from './CalibrationDialog'
 import './PancakeTimer.css'
@@ -57,16 +61,59 @@ const PancakeTimer: React.FC = () => {
   const startProgress = useRef<number>(0)
   const endProgress = useRef<number>(0)
   
+  // 防止重复触发完成事件的标志位
+  const hasTriggeredComplete = useRef<boolean>(false)
+  
   // 桌面端交互状态
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [showKeyboardHint, setShowKeyboardHint] = useState(false)
   const keyboardHintTimer = useRef<number | null>(null)
+
+  // 页面可见性状态
+  const [isPageVisible, setIsPageVisible] = useState(true)
+  const lastVisibilityTime = useRef<number>(Date.now())
 
   // 初始化Wake Lock支持检测
   useEffect(() => {
     setWakeLockSupported(wakeLockManager.isSupported_())
     setWakeLockActive(wakeLockManager.isActive_())
   }, [])
+
+  // 页面可见性监听
+  useEffect(() => {
+    const handleVisibilityChange = (state: any) => {
+      const now = Date.now()
+      
+      if (state.isVisible && !isPageVisible) {
+        // 页面从隐藏变为可见
+        setIsPageVisible(true)
+        
+        // 如果计时器正在运行，需要调整时间
+        if (timerState === 'running') {
+          const hiddenDuration = now - lastVisibilityTime.current
+          console.log(`页面隐藏了 ${Math.round(hiddenDuration / 1000)} 秒`)
+          
+          // 调整剩余时间（减去隐藏期间的时间）
+          setRemainingTime(prevTime => {
+            const adjustedTime = Math.max(0, prevTime - Math.floor(hiddenDuration / 1000))
+            console.log(`时间从 ${prevTime}s 调整为 ${adjustedTime}s`)
+            return adjustedTime
+          })
+        }
+      } else if (!state.isVisible && isPageVisible) {
+        // 页面从可见变为隐藏
+        setIsPageVisible(false)
+        lastVisibilityTime.current = now
+        console.log('页面已隐藏，记录时间点')
+      }
+    }
+
+    pageVisibilityManager.addListener(handleVisibilityChange)
+
+    return () => {
+      pageVisibilityManager.removeListener(handleVisibilityChange)
+    }
+  }, [isPageVisible, timerState])
 
   // 加载设置
   useEffect(() => {
@@ -277,24 +324,35 @@ const PancakeTimer: React.FC = () => {
     }
   }
 
-  // 计时器逻辑
+  // 计时器逻辑（带页面可见性优化）
   useEffect(() => {
     let interval: number | null = null
 
     if (timerState === 'running' && remainingTime > 0) {
+      // 开始新的计时周期时重置标志位
+      hasTriggeredComplete.current = false
+      
+      // 根据页面可见性调整更新频率
+      const updateInterval = isPageVisible ? 1000 : 5000 // 隐藏时每5秒更新一次
+
       interval = setInterval(() => {
         setRemainingTime(prev => {
-          if (prev <= 1) {
-            // 时间到了，触发提醒
+          // 计算实际减少的时间
+          const decrement = isPageVisible ? 1 : 5
+          const newTime = prev - decrement
+
+          if (newTime <= 0 && !hasTriggeredComplete.current) {
+            // 时间到了，触发提醒（只触发一次）
+            hasTriggeredComplete.current = true
             handleTimerComplete()
             // 重新开始计时时，同时重置动画进度
             setAnimatedProgress(0)
             setIsTransitioning(false)
             return targetTime // 重新开始计时
           }
-          return prev - 1
+          return Math.max(0, newTime) // 确保时间不会小于0
         })
-      }, 1000)
+      }, updateInterval)
     }
 
     return () => {
@@ -302,13 +360,13 @@ const PancakeTimer: React.FC = () => {
         clearInterval(interval)
       }
     }
-  }, [timerState, remainingTime, targetTime])
+  }, [timerState, remainingTime, targetTime, isPageVisible])
 
-  // 平滑过渡动画
+  // 平滑过渡动画（带页面可见性优化）
   useEffect(() => {
     let animationFrame: number | null = null
     
-    if (isTransitioning && transitionStartTime.current) {
+    if (isTransitioning && transitionStartTime.current && isPageVisible) {
       const animate = () => {
         const elapsed = Date.now() - transitionStartTime.current!
         const duration = 500 // 500ms 过渡时间
@@ -334,6 +392,11 @@ const PancakeTimer: React.FC = () => {
       }
       
       animationFrame = requestAnimationFrame(animate)
+    } else if (isTransitioning && !isPageVisible) {
+      // 页面隐藏时跳过动画，直接设置最终状态
+      setAnimatedProgress(endProgress.current)
+      setIsTransitioning(false)
+      transitionStartTime.current = null
     }
     
     return () => {
@@ -341,7 +404,7 @@ const PancakeTimer: React.FC = () => {
         cancelAnimationFrame(animationFrame)
       }
     }
-  }, [isTransitioning])
+  }, [isTransitioning, isPageVisible])
 
   // 更新正常计时时的动画进度
   useEffect(() => {
@@ -350,6 +413,32 @@ const PancakeTimer: React.FC = () => {
       setAnimatedProgress(currentProgress)
     }
   }, [remainingTime, targetTime, isTransitioning])
+
+  // 动态更新页面标题
+  useEffect(() => {
+    const defaultTitle = '煎饼侠 - 专业煎饼计时器'
+    
+    if (timerState === 'running' && remainingTime > 0) {
+      // 计时中显示剩余时间
+      document.title = `⏱️ ${formatTime(remainingTime)} - 煎饼侠`
+    } else if (timerState === 'paused') {
+      // 暂停中显示暂停状态
+      document.title = `⏸️ 已暂停 ${formatTime(remainingTime)} - 煎饼侠`
+    } else if (remainingTime === 0) {
+      // 时间到了
+      document.title = '🔔 时间到！- 煎饼侠'
+    } else {
+      // 停止状态显示默认标题
+      document.title = defaultTitle
+    }
+
+    // 组件卸载时恢复默认标题
+    return () => {
+      if (timerState === 'stopped') {
+        document.title = defaultTitle
+      }
+    }
+  }, [timerState, remainingTime])
 
   // 处理计时完成
   const handleTimerComplete = useCallback(async () => {
@@ -398,6 +487,13 @@ const PancakeTimer: React.FC = () => {
         navigator.vibrate([500, 200, 500])
       }
 
+      // 桌面通知提醒
+      if (settings.notificationEnabled) {
+        promises.push(
+          notificationManager.showFlipReminder(settings.customPrompt)
+        )
+      }
+
       // 等待音效和语音完成（但不阻塞其他操作）
       Promise.all(promises).catch(error => {
         console.warn('Audio alerts failed:', error)
@@ -418,6 +514,8 @@ const PancakeTimer: React.FC = () => {
   const toggleTimer = () => {
     if (timerState === 'stopped' || timerState === 'paused') {
       setTimerState('running')
+      // 重置完成标志位
+      hasTriggeredComplete.current = false
       // 开始计时时，确保动画进度与当前时间同步
       if (!isTransitioning && targetTime > 0) {
         const currentProgress = ((targetTime - remainingTime) / targetTime) * 100
@@ -432,6 +530,8 @@ const PancakeTimer: React.FC = () => {
   const resetTimer = () => {
     setRemainingTime(targetTime)
     setTimerState('running')
+    // 重置完成标志位
+    hasTriggeredComplete.current = false
     // 重置动画进度，确保圈圈从满重新开始
     setAnimatedProgress(0)
     setIsTransitioning(false)
@@ -439,26 +539,56 @@ const PancakeTimer: React.FC = () => {
 
   // 调整时间（+1秒/-1秒或+5秒/-5秒）
   const adjustTime = (delta: number) => {
+    // 计算新的总时间（提醒周期）
+    const newTargetTime = Math.max(1, targetTime + delta)
+    
     if (timerState === 'running') {
-      setRemainingTime(prev => {
-        const newRemaining = Math.max(1, prev + delta)
-        // 运行时调整时间，立即更新动画进度，确保圈圈同步
-        const newProgress = ((targetTime - newRemaining) / targetTime) * 100
-        setAnimatedProgress(newProgress)
-        setIsTransitioning(false)
-        return newRemaining
-      })
+      // 运行时：先调整总时间设置，然后直接调整当前剩余时间
+      
+      // 1. 更新提醒周期设置（以后的每次计时都使用新的周期）
+      setTargetTime(newTargetTime)
+      
+      // 2. 直接调整当前剩余时间
+      let newRemainingTime = remainingTime + delta
+      
+      // 3. 处理边界情况
+      if (newRemainingTime <= 0) {
+        // 如果剩余时间不够减，直接开启下一轮计时
+        handleTimerComplete() // 触发当前轮完成
+        newRemainingTime = newTargetTime // 重新开始新一轮
+        // 重置完成标志位，允许新一轮的完成事件
+        hasTriggeredComplete.current = false
+      } else if (newRemainingTime > newTargetTime) {
+        // 如果剩余时间超过了新的周期时间，限制在周期时间内
+        newRemainingTime = newTargetTime
+      }
+      
+      setRemainingTime(newRemainingTime)
+      
+      // 更新动画进度
+      const newProgress = ((newTargetTime - newRemainingTime) / newTargetTime) * 100
+      setAnimatedProgress(newProgress)
+      setIsTransitioning(false)
+      
+      // 保存新的时间设置
+      if (settings) {
+        const updatedSettings = { ...settings, flipInterval: newTargetTime }
+        setSettings(updatedSettings)
+        storageManager.saveSettings(updatedSettings)
+      }
+      
+      console.log(`时间调整：周期 ${targetTime}s -> ${newTargetTime}s，剩余时间 ${remainingTime}s -> ${newRemainingTime}s`)
     } else {
-      const newTime = Math.max(1, targetTime + delta)
-      setTargetTime(newTime)
-      setRemainingTime(newTime)
+      // 停止状态下的调整逻辑保持不变
+      setTargetTime(newTargetTime)
+      setRemainingTime(newTargetTime)
       // 停止状态下调整时间，重置动画进度为0
       setAnimatedProgress(0)
       setIsTransitioning(false)
       
       // 保存新的时间设置
       if (settings) {
-        const updatedSettings = { ...settings, flipInterval: newTime }
+        const updatedSettings = { ...settings, flipInterval: newTargetTime }
         setSettings(updatedSettings)
         storageManager.saveSettings(updatedSettings)
       }
@@ -527,6 +657,7 @@ const PancakeTimer: React.FC = () => {
       speechEnabled: true,
       soundEffectsEnabled: true,
       soundEffectType: 'chime',
+      notificationEnabled: true,
       lastUsed: Date.now()
     }
     
@@ -587,30 +718,30 @@ const PancakeTimer: React.FC = () => {
           </Typography>
         </Box>
         
-        {/* 屏幕常亮状态指示器 */}
-        {wakeLockSupported && (
-          <Box 
-            sx={{ 
-              position: 'absolute', 
-              top: 12, 
-              right: 12,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5
-            }}
-          >
-            {wakeLockActive ? (
-              <LightbulbIcon 
+        {/* 状态指示器 */}
+        <Box 
+          sx={{ 
+            position: 'absolute', 
+            top: 12, 
+            right: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          {/* 页面可见性状态指示器 */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {isPageVisible ? (
+              <VisibilityIcon 
                 sx={{ 
-                  fontSize: 20, 
-                  color: 'warning.main',
-                  filter: 'drop-shadow(0 0 4px rgba(255, 193, 7, 0.6))'
+                  fontSize: 18, 
+                  color: 'success.main'
                 }} 
               />
             ) : (
-              <LightbulbOutlinedIcon 
+              <VisibilityOffIcon 
                 sx={{ 
-                  fontSize: 20, 
+                  fontSize: 18, 
                   color: 'text.disabled'
                 }} 
               />
@@ -618,15 +749,47 @@ const PancakeTimer: React.FC = () => {
             <Typography 
               variant="caption" 
               sx={{ 
-                fontSize: '0.7rem',
-                color: wakeLockActive ? 'warning.main' : 'text.disabled',
-                fontWeight: wakeLockActive ? 600 : 400
+                fontSize: '0.65rem',
+                color: isPageVisible ? 'success.main' : 'text.disabled',
+                fontWeight: isPageVisible ? 600 : 400
               }}
             >
-              {wakeLockActive ? '常亮' : ''}
+              {isPageVisible ? '可见' : '隐藏'}
             </Typography>
           </Box>
-        )}
+
+          {/* 屏幕常亮状态指示器 */}
+          {wakeLockSupported && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              {wakeLockActive ? (
+                <LightbulbIcon 
+                  sx={{ 
+                    fontSize: 18, 
+                    color: 'warning.main',
+                    filter: 'drop-shadow(0 0 4px rgba(255, 193, 7, 0.6))'
+                  }} 
+                />
+              ) : (
+                <LightbulbOutlinedIcon 
+                  sx={{ 
+                    fontSize: 18, 
+                    color: 'text.disabled'
+                  }} 
+                />
+              )}
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  fontSize: '0.65rem',
+                  color: wakeLockActive ? 'warning.main' : 'text.disabled',
+                  fontWeight: wakeLockActive ? 600 : 400
+                }}
+              >
+                {wakeLockActive ? '常亮' : ''}
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Paper>
 
       {/* 主计时器显示 */}

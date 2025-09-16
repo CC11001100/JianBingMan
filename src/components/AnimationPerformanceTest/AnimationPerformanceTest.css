@@ -1,0 +1,459 @@
+/* 動畫性能測試組件樣式 */
+.animation-performance-test {
+  min-height: 100vh;
+}
+
+/* 測試元素基礎樣式 */
+.fade-test-element,
+.pulse-test-element,
+.scale-test-element,
+.slide-test-element,
+.rotate-test-element {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(45deg, #2196f3, #21cbf3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+/* 載入動畫相關樣式 */
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  position: relative;
+}
+
+.spinner-circle {
+  width: 100%;
+  height: 100%;
+  border: 4px solid rgba(33, 150, 243, 0.2);
+  border-top: 4px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spin-animation .spinner-circle {
+  animation: spin 1s linear infinite;
+}
+
+/* 按鈕過渡測試樣式 */
+.test-button {
+  transition: all 0.3s ease !important;
+  transform: scale(1);
+}
+
+.test-button.hover-simulation {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4) !important;
+}
+
+.test-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4) !important;
+}
+
+/* 動畫類別 */
+.fade-animation {
+  animation: fadeInOut 1s ease-in-out infinite alternate;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.pulse-animation {
+  animation: pulseScale 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseScale {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.scale-animation {
+  animation: scaleTest 1s ease-in-out infinite alternate;
+}
+
+@keyframes scaleTest {
+  0% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1.2);
+  }
+}
+
+.slide-animation {
+  animation: slideTest 2s ease-in-out infinite alternate;
+}
+
+@keyframes slideTest {
+  0% {
+    transform: translateX(-50px);
+  }
+  50% {
+    transform: translateX(50px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
+
+.rotate-animation {
+  animation: rotateTest 2s linear infinite;
+}
+
+@keyframes rotateTest {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 通用旋轉動畫 */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 性能指標表格樣式 */
+.animation-performance-test .MuiTableCell-root {
+  font-size: 0.875rem;
+}
+
+.animation-performance-test .MuiTableCell-head {
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* 等級徽章樣式 */
+.animation-performance-test .MuiChip-root {
+  font-weight: 600;
+}
+
+/* 手風琴樣式 */
+.animation-performance-test .MuiAccordion-root {
+  margin: 8px 0;
+  border-radius: 8px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.animation-performance-test .MuiAccordion-root:before {
+  display: none;
+}
+
+.animation-performance-test .MuiAccordionSummary-root {
+  border-radius: 8px 8px 0 0;
+}
+
+.animation-performance-test .MuiAccordionSummary-root.Mui-expanded {
+  border-radius: 8px 8px 0 0;
+}
+
+.animation-performance-test .MuiAccordionDetails-root {
+  padding: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* 選項卡樣式 */
+.animation-performance-test .MuiTabs-root {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.animation-performance-test .MuiTab-root {
+  font-weight: 500;
+  text-transform: none;
+  min-height: 48px;
+}
+
+/* 進度條樣式 */
+.animation-performance-test .MuiLinearProgress-root {
+  border-radius: 4px;
+  height: 6px;
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
+.animation-performance-test .MuiLinearProgress-bar {
+  border-radius: 4px;
+}
+
+/* 卡片樣式增強 */
+.animation-performance-test .MuiCard-root {
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.animation-performance-test .MuiCard-root:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* 按鈕樣式 */
+.animation-performance-test .MuiButton-root {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 600;
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+.animation-performance-test .MuiButton-contained {
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.animation-performance-test .MuiButton-contained:hover {
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4);
+  transform: translateY(-1px);
+}
+
+.animation-performance-test .MuiButton-outlined {
+  border-color: rgba(33, 150, 243, 0.5);
+}
+
+.animation-performance-test .MuiButton-outlined:hover {
+  border-color: #2196f3;
+  background-color: rgba(33, 150, 243, 0.04);
+}
+
+/* 列表樣式 */
+.animation-performance-test .MuiList-root {
+  padding: 0;
+}
+
+.animation-performance-test .MuiListItem-root {
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.animation-performance-test .MuiListItem-root:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* 對話框樣式 */
+.animation-performance-test .MuiDialog-paper {
+  border-radius: 16px;
+}
+
+.animation-performance-test .MuiDialogTitle-root {
+  padding: 24px 24px 16px;
+  font-weight: 600;
+}
+
+.animation-performance-test .MuiDialogContent-root {
+  padding: 0 24px;
+}
+
+.animation-performance-test .MuiDialogActions-root {
+  padding: 16px 24px 24px;
+  gap: 8px;
+}
+
+/* 報告預覽樣式 */
+.animation-performance-test pre {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  line-height: 1.5;
+  color: #333;
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  overflow-x: auto;
+}
+
+/* 響應式設計 */
+@media (max-width: 900px) {
+  .animation-performance-test .MuiGrid-container {
+    margin: 0;
+    width: 100%;
+  }
+  
+  .animation-performance-test .MuiGrid-item {
+    padding: 8px;
+  }
+  
+  .animation-performance-test .MuiCard-root {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .animation-performance-test {
+    padding: 16px;
+  }
+  
+  .animation-performance-test .MuiTypography-h4 {
+    font-size: 1.8rem;
+  }
+  
+  .animation-performance-test .MuiButton-root {
+    font-size: 0.875rem;
+  }
+  
+  .animation-performance-test .MuiDialogContent-root {
+    padding: 0 16px;
+  }
+  
+  .animation-performance-test .MuiDialogActions-root {
+    padding: 12px 16px 16px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .animation-performance-test .MuiDialogActions-root .MuiButton-root {
+    width: 100%;
+  }
+}
+
+/* 可及性增強 */
+@media (prefers-reduced-motion: reduce) {
+  .animation-performance-test *,
+  .animation-performance-test *::before,
+  .animation-performance-test *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animation-performance-test .MuiCard-root:hover {
+    transform: none;
+  }
+  
+  .animation-performance-test .MuiButton-contained:hover {
+    transform: none;
+  }
+}
+
+/* 高對比度模式支持 */
+@media (prefers-contrast: high) {
+  .animation-performance-test .MuiCard-root {
+    border: 2px solid currentColor;
+  }
+  
+  .animation-performance-test .MuiButton-outlined {
+    border-width: 2px;
+  }
+  
+  .animation-performance-test .fade-test-element,
+  .animation-performance-test .pulse-test-element,
+  .animation-performance-test .scale-test-element,
+  .animation-performance-test .slide-test-element,
+  .animation-performance-test .rotate-test-element {
+    border: 2px solid white;
+  }
+}
+
+/* 焦點樣式增強 */
+.animation-performance-test .MuiButton-root:focus-visible {
+  outline: 3px solid #ff6b35;
+  outline-offset: 2px;
+}
+
+.animation-performance-test .MuiAccordionSummary-root:focus-visible {
+  outline: 2px solid #ff6b35;
+  outline-offset: 2px;
+}
+
+/* 載入狀態樣式 */
+.animation-performance-test .loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 性能等級顏色 */
+.animation-performance-test .grade-a {
+  color: #4caf50;
+}
+
+.animation-performance-test .grade-b {
+  color: #2196f3;
+}
+
+.animation-performance-test .grade-c {
+  color: #ff9800;
+}
+
+.animation-performance-test .grade-d,
+.animation-performance-test .grade-f {
+  color: #f44336;
+}
+
+/* 指標表格增強 */
+.animation-performance-test .metrics-table .good-value {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.animation-performance-test .metrics-table .bad-value {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.animation-performance-test .metrics-table .warning-value {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+/* 測試進度指示器 */
+.animation-performance-test .test-progress {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 12px 0;
+}
+
+/* 浮動動作按鈕 */
+.animation-performance-test .fab-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+}
+
+@media (max-width: 600px) {
+  .animation-performance-test .fab-container {
+    bottom: 16px;
+    right: 16px;
+  }
+}
+
+

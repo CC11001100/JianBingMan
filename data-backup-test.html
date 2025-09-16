@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煎餅俠 - 數據備份和恢復測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #ff6b35;
+            transition: all 0.3s ease;
+        }
+
+        .test-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-card h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .test-card p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #ff6b35;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e55722;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .result-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .result-panel h4 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .result-content {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .status-panel {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .status-value {
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #f7931e);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1edff;
+            color: #0c5460;
+            border: 1px solid #b3d7ff;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .file-input {
+            margin-bottom: 15px;
+        }
+
+        .file-input input[type="file"] {
+            padding: 8px;
+            border: 2px dashed #dee2e6;
+            border-radius: 6px;
+            width: 100%;
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .test-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ 數據備份和恢復測試</h1>
+            <p>測試煎餅俠應用的完整數據備份、導出、導入和恢復功能</p>
+        </div>
+
+        <div class="content">
+            <!-- 當前狀態面板 -->
+            <div class="status-panel">
+                <h4>📊 當前數據狀態</h4>
+                <div class="status-item">
+                    <span class="status-label">數據類型：</span>
+                    <span class="status-value" id="dataTypes">載入中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">估算大小：</span>
+                    <span class="status-value" id="dataSize">載入中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">歷史記錄：</span>
+                    <span class="status-value" id="historyCount">載入中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">自定義語音：</span>
+                    <span class="status-value" id="voiceCount">載入中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">最後更新：</span>
+                    <span class="status-value" id="lastUpdated">載入中...</span>
+                </div>
+            </div>
+
+            <!-- 測試功能網格 -->
+            <div class="test-grid">
+                <!-- 創建備份 -->
+                <div class="test-card">
+                    <h3>💾 創建備份</h3>
+                    <p>創建包含所有用戶數據的完整備份，包括設置、校準數據、歷史記錄和自定義語音。</p>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="createBackup()">
+                            📦 創建備份
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 導出備份 -->
+                <div class="test-card">
+                    <h3>⬇️ 導出備份</h3>
+                    <p>將備份數據導出為文件，支持 JSON 和加密格式。</p>
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="exportBackup('json')">
+                            📄 JSON 格式
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportBackup('encrypted')">
+                            🔒 加密格式
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 導入恢復 -->
+                <div class="test-card">
+                    <h3>⬆️ 導入恢復</h3>
+                    <p>從備份文件恢復數據，支持數據驗證和完整性檢查。</p>
+                    <div class="file-input">
+                        <input type="file" id="backupFile" accept=".json,.bak" onchange="handleFileSelect(this)">
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="importBackup()" disabled id="importBtn">
+                            🔄 導入數據
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 數據驗證 -->
+                <div class="test-card">
+                    <h3>✅ 數據驗證</h3>
+                    <p>驗證備份文件的完整性、格式兼容性和數據有效性。</p>
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="validateCurrentData()">
+                            🔍 驗證當前數據
+                        </button>
+                        <button class="btn btn-secondary" onclick="runCompatibilityTest()">
+                            🧪 兼容性測試
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 數據統計 -->
+                <div class="test-card">
+                    <h3>📈 數據統計</h3>
+                    <p>獲取詳細的數據統計信息和存儲使用情況。</p>
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="getDetailedStats()">
+                            📊 詳細統計
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshStats()">
+                            🔄 刷新統計
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 危險操作 -->
+                <div class="test-card">
+                    <h3>⚠️ 危險操作</h3>
+                    <p>清除所有數據。此操作不可撤銷，建議在操作前先創建備份。</p>
+                    <div class="button-group">
+                        <button class="btn btn-danger" onclick="clearAllData()">
+                            🗑️ 清除所有數據
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 進度條 -->
+            <div class="progress-bar hidden" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <!-- 結果顯示面板 -->
+            <div class="result-panel">
+                <h4>📝 測試結果</h4>
+                <div class="result-content" id="resultContent">
+                    準備執行數據備份和恢復測試...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模擬 IndexedDB 數據管理
+        class MockDataBackupManager {
+            constructor() {
+                this.currentData = {
+                    settings: {
+                        flipInterval: 20,
+                        customPrompt: '該翻面了！',
+                        volume: 0.8,
+                        speechRate: 1.0,
+                        speechPitch: 1.0,
+                        voiceType: 'auto',
+                        vibrationEnabled: true,
+                        speechEnabled: true,
+                        soundEffectsEnabled: true,
+                        soundEffectType: 'chime',
+                        notificationEnabled: true,
+                        lastUsed: Date.now()
+                    },
+                    calibration: {
+                        calibratedTime: 18,
+                        calibratedAt: Date.now() - 86400000
+                    },
+                    history: this.generateMockHistory(15),
+                    customVoices: this.generateMockVoices(3)
+                }
+                this.lastBackup = null
+                this.init()
+            }
+
+            generateMockHistory(count) {
+                const history = []
+                for (let i = 0; i < count; i++) {
+                    history.push({
+                        id: i + 1,
+                        duration: 15 + Math.floor(Math.random() * 20),
+                        wasCalibration: Math.random() < 0.1,
+                        timestamp: Date.now() - (i * 86400000)
+                    })
+                }
+                return history
+            }
+
+            generateMockVoices(count) {
+                const voices = []
+                for (let i = 0; i < count; i++) {
+                    voices.push({
+                        id: `voice_${i + 1}`,
+                        name: `自定義語音 ${i + 1}`,
+                        audioData: btoa(`mock_audio_data_${i + 1}`),
+                        duration: 2 + Math.random() * 3,
+                        createdAt: Date.now() - (i * 3600000),
+                        lastUsed: Date.now() - (i * 86400000)
+                    })
+                }
+                return voices
+            }
+
+            init() {
+                this.updateStatusPanel()
+            }
+
+            updateStatusPanel() {
+                const dataTypes = Object.keys(this.currentData).filter(key => 
+                    this.currentData[key] !== null && 
+                    (!Array.isArray(this.currentData[key]) || this.currentData[key].length > 0)
+                ).length
+
+                const estimatedSize = JSON.stringify(this.currentData).length
+
+                document.getElementById('dataTypes').textContent = `${dataTypes} 種`
+                document.getElementById('dataSize').textContent = this.formatFileSize(estimatedSize)
+                document.getElementById('historyCount').textContent = `${this.currentData.history.length} 記錄`
+                document.getElementById('voiceCount').textContent = `${this.currentData.customVoices.length} 個`
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleString('zh-TW')
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 B'
+                const k = 1024
+                const sizes = ['B', 'KB', 'MB', 'GB']
+                const i = Math.floor(Math.log(bytes) / Math.log(k))
+                return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
+            }
+
+            async createFullBackup() {
+                await this.simulateDelay(1000, '正在收集數據...')
+                
+                const backup = {
+                    version: '1.0.0',
+                    timestamp: Date.now(),
+                    deviceInfo: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    },
+                    data: JSON.parse(JSON.stringify(this.currentData)),
+                    checksum: ''
+                }
+
+                backup.checksum = await this.calculateChecksum(backup)
+                this.lastBackup = backup
+
+                return backup
+            }
+
+            async exportBackupToFile(format = 'json') {
+                const backup = this.lastBackup || await this.createFullBackup()
+                
+                let content, filename, mimeType
+
+                if (format === 'json') {
+                    content = JSON.stringify(backup, null, 2)
+                    filename = `pancake-timer-backup-${new Date().toISOString().split('T')[0]}.json`
+                    mimeType = 'application/json'
+                } else {
+                    content = btoa(JSON.stringify(backup))
+                    filename = `pancake-timer-backup-${new Date().toISOString().split('T')[0]}.bak`
+                    mimeType = 'application/octet-stream'
+                }
+
+                await this.simulateDelay(800, `正在導出 ${format.toUpperCase()} 格式...`)
+
+                this.downloadFile(content, filename, mimeType)
+                return { filename, size: content.length }
+            }
+
+            async validateImportData(content) {
+                await this.simulateDelay(600, '正在驗證數據...')
+
+                const result = {
+                    isValid: false,
+                    version: '',
+                    errors: [],
+                    warnings: [],
+                    dataTypes: [],
+                    totalSize: content.length,
+                    recordCounts: { settings: 0, calibration: 0, history: 0, customVoices: 0 }
+                }
+
+                try {
+                    let data
+                    try {
+                        data = JSON.parse(content)
+                    } catch {
+                        data = JSON.parse(atob(content))
+                    }
+
+                    result.version = data.version || '未知'
+                    
+                    if (!data.version) {
+                        result.errors.push('缺少版本信息')
+                    }
+
+                    if (!data.timestamp) {
+                        result.errors.push('缺少時間戳')
+                    } else if (data.timestamp > Date.now()) {
+                        result.warnings.push('備份時間晚於當前時間')
+                    }
+
+                    if (!data.data) {
+                        result.errors.push('缺少數據內容')
+                        return result
+                    }
+
+                    // 驗證各數據類型
+                    if (data.data.settings) {
+                        result.dataTypes.push('settings')
+                        result.recordCounts.settings = 1
+                    }
+
+                    if (data.data.calibration) {
+                        result.dataTypes.push('calibration')
+                        result.recordCounts.calibration = 1
+                    }
+
+                    if (data.data.history && Array.isArray(data.data.history)) {
+                        result.dataTypes.push('history')
+                        result.recordCounts.history = data.data.history.length
+                    }
+
+                    if (data.data.customVoices && Array.isArray(data.data.customVoices)) {
+                        result.dataTypes.push('customVoices')
+                        result.recordCounts.customVoices = data.data.customVoices.length
+                    }
+
+                    if (data.checksum) {
+                        const expectedChecksum = await this.calculateChecksum({ ...data, checksum: '' })
+                        if (expectedChecksum !== data.checksum) {
+                            result.warnings.push('校驗和不匹配，數據可能已損壞')
+                        }
+                    } else {
+                        result.warnings.push('缺少校驗和')
+                    }
+
+                    result.isValid = result.errors.length === 0 && result.dataTypes.length > 0
+
+                } catch (error) {
+                    result.errors.push(`解析數據失敗: ${error.message}`)
+                }
+
+                return result
+            }
+
+            async importAndRestoreData(content, options = {}) {
+                const validation = await this.validateImportData(content)
+                
+                if (!validation.isValid) {
+                    throw new Error(`導入數據無效: ${validation.errors.join(', ')}`)
+                }
+
+                await this.simulateDelay(1200, '正在恢復數據...')
+
+                let data
+                try {
+                    data = JSON.parse(content)
+                } catch {
+                    data = JSON.parse(atob(content))
+                }
+
+                if (options.overwrite || !this.currentData.settings) {
+                    this.currentData.settings = data.data.settings
+                }
+
+                if (options.overwrite || !this.currentData.calibration) {
+                    this.currentData.calibration = data.data.calibration
+                }
+
+                if (options.mergeHistory && data.data.history) {
+                    this.currentData.history = [...this.currentData.history, ...data.data.history]
+                } else if (options.overwrite && data.data.history) {
+                    this.currentData.history = data.data.history
+                }
+
+                if (options.preserveCustomVoices && data.data.customVoices) {
+                    this.currentData.customVoices = [...this.currentData.customVoices, ...data.data.customVoices]
+                } else if (options.overwrite && data.data.customVoices) {
+                    this.currentData.customVoices = data.data.customVoices
+                }
+
+                this.updateStatusPanel()
+                return validation
+            }
+
+            async clearAllData() {
+                await this.simulateDelay(500, '正在清除數據...')
+                
+                this.currentData = {
+                    settings: null,
+                    calibration: null,
+                    history: [],
+                    customVoices: []
+                }
+
+                this.lastBackup = null
+                this.updateStatusPanel()
+            }
+
+            async getDetailedStats() {
+                await this.simulateDelay(300, '正在計算統計...')
+
+                const stats = {
+                    totalRecords: 0,
+                    dataTypes: 0,
+                    storageUsage: JSON.stringify(this.currentData).length,
+                    breakdown: {}
+                }
+
+                Object.keys(this.currentData).forEach(key => {
+                    const data = this.currentData[key]
+                    if (data !== null) {
+                        stats.dataTypes++
+                        if (Array.isArray(data)) {
+                            stats.totalRecords += data.length
+                            stats.breakdown[key] = `${data.length} 記錄`
+                        } else {
+                            stats.totalRecords += 1
+                            stats.breakdown[key] = '1 項'
+                        }
+                    } else {
+                        stats.breakdown[key] = '無數據'
+                    }
+                })
+
+                return stats
+            }
+
+            async calculateChecksum(data) {
+                await this.simulateDelay(100)
+                const str = JSON.stringify(data)
+                return btoa(str).slice(0, 32)
+            }
+
+            downloadFile(content, filename, mimeType) {
+                const blob = new Blob([content], { type: mimeType })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = filename
+                a.style.display = 'none'
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(url)
+            }
+
+            async simulateDelay(ms, message = '處理中...') {
+                if (message) {
+                    this.updateProgress(0, message)
+                    this.showProgress()
+                }
+
+                for (let i = 0; i <= 100; i += 10) {
+                    await new Promise(resolve => setTimeout(resolve, ms / 10))
+                    this.updateProgress(i, message)
+                }
+
+                this.hideProgress()
+            }
+
+            showProgress() {
+                document.getElementById('progressBar').classList.remove('hidden')
+            }
+
+            hideProgress() {
+                document.getElementById('progressBar').classList.add('hidden')
+            }
+
+            updateProgress(percent, message) {
+                document.getElementById('progressFill').style.width = `${percent}%`
+            }
+        }
+
+        // 全局變量
+        let dataManager
+        let selectedFile = null
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            dataManager = new MockDataBackupManager()
+            log('系統初始化完成，準備進行數據備份和恢復測試')
+        })
+
+        // 日誌函數
+        function log(message, type = 'info') {
+            const resultContent = document.getElementById('resultContent')
+            const timestamp = new Date().toLocaleTimeString('zh-TW')
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'
+            
+            resultContent.innerHTML += `
+                <div style="margin-bottom: 8px; padding: 8px; border-left: 3px solid ${getTypeColor(type)}; background: ${getTypeBg(type)}">
+                    <strong>[${timestamp}]</strong> ${icon} ${message}
+                </div>
+            `
+            resultContent.scrollTop = resultContent.scrollHeight
+        }
+
+        function getTypeColor(type) {
+            switch (type) {
+                case 'success': return '#28a745'
+                case 'error': return '#dc3545'
+                case 'warning': return '#ffc107'
+                default: return '#17a2b8'
+            }
+        }
+
+        function getTypeBg(type) {
+            switch (type) {
+                case 'success': return '#d1edff'
+                case 'error': return '#f8d7da'
+                case 'warning': return '#fff3cd'
+                default: return '#d1ecf1'
+            }
+        }
+
+        // 測試函數
+        async function createBackup() {
+            try {
+                log('開始創建數據備份...')
+                const backup = await dataManager.createFullBackup()
+                
+                log(`✅ 備份創建成功！`, 'success')
+                log(`版本：${backup.version}`)
+                log(`時間戳：${new Date(backup.timestamp).toLocaleString('zh-TW')}`)
+                log(`數據類型：${Object.keys(backup.data).filter(key => backup.data[key] !== null).length} 種`)
+                log(`校驗和：${backup.checksum}`)
+                
+            } catch (error) {
+                log(`❌ 創建備份失敗：${error.message}`, 'error')
+            }
+        }
+
+        async function exportBackup(format) {
+            try {
+                log(`開始導出 ${format.toUpperCase()} 格式備份...`)
+                const result = await dataManager.exportBackupToFile(format)
+                
+                log(`✅ 備份導出成功！`, 'success')
+                log(`文件名：${result.filename}`)
+                log(`文件大小：${dataManager.formatFileSize(result.size)}`)
+                log(`格式：${format.toUpperCase()}`)
+                
+            } catch (error) {
+                log(`❌ 導出備份失敗：${error.message}`, 'error')
+            }
+        }
+
+        async function handleFileSelect(input) {
+            const file = input.files[0]
+            if (!file) return
+
+            selectedFile = file
+            document.getElementById('importBtn').disabled = false
+            
+            log(`📁 已選擇文件：${file.name}`)
+            log(`文件大小：${dataManager.formatFileSize(file.size)}`)
+            log(`文件類型：${file.type || '未知'}`)
+
+            // 預覽驗證
+            try {
+                const content = await readFileContent(file)
+                const validation = await dataManager.validateImportData(content)
+                
+                if (validation.isValid) {
+                    log(`✅ 文件驗證通過`, 'success')
+                    log(`版本：${validation.version}`)
+                    log(`數據類型：${validation.dataTypes.join(', ')}`)
+                } else {
+                    log(`⚠️ 文件驗證警告`, 'warning')
+                    validation.errors.forEach(error => log(`錯誤：${error}`, 'error'))
+                    validation.warnings.forEach(warning => log(`警告：${warning}`, 'warning'))
+                }
+            } catch (error) {
+                log(`❌ 文件預覽失敗：${error.message}`, 'error')
+            }
+        }
+
+        async function importBackup() {
+            if (!selectedFile) {
+                log('❌ 請先選擇備份文件', 'error')
+                return
+            }
+
+            try {
+                log('開始導入數據...')
+                const content = await readFileContent(selectedFile)
+                
+                const options = {
+                    overwrite: confirm('是否覆蓋現有數據？'),
+                    mergeHistory: confirm('是否合併歷史記錄？'),
+                    preserveCustomVoices: confirm('是否保留現有自定義語音？')
+                }
+
+                const result = await dataManager.importAndRestoreData(content, options)
+                
+                log(`✅ 數據導入成功！`, 'success')
+                log(`恢復的數據類型：${result.dataTypes.join(', ')}`)
+                log(`設置：${result.recordCounts.settings} 項`)
+                log(`校準：${result.recordCounts.calibration} 項`)
+                log(`歷史：${result.recordCounts.history} 記錄`)
+                log(`語音：${result.recordCounts.customVoices} 個`)
+                
+                selectedFile = null
+                document.getElementById('importBtn').disabled = true
+                document.getElementById('backupFile').value = ''
+                
+            } catch (error) {
+                log(`❌ 導入數據失敗：${error.message}`, 'error')
+            }
+        }
+
+        async function validateCurrentData() {
+            try {
+                log('開始驗證當前數據...')
+                const backup = await dataManager.createFullBackup()
+                const content = JSON.stringify(backup)
+                const validation = await dataManager.validateImportData(content)
+                
+                if (validation.isValid) {
+                    log(`✅ 當前數據驗證通過`, 'success')
+                } else {
+                    log(`❌ 當前數據驗證失敗`, 'error')
+                    validation.errors.forEach(error => log(`錯誤：${error}`, 'error'))
+                }
+                
+                log(`數據完整性：${validation.isValid ? '完整' : '不完整'}`)
+                log(`數據類型：${validation.dataTypes.length} 種`)
+                log(`文件大小：${dataManager.formatFileSize(validation.totalSize)}`)
+                
+            } catch (error) {
+                log(`❌ 驗證失敗：${error.message}`, 'error')
+            }
+        }
+
+        async function runCompatibilityTest() {
+            try {
+                log('開始運行兼容性測試...')
+                
+                // 測試不同格式
+                const formats = ['json', 'encrypted']
+                for (const format of formats) {
+                    log(`測試 ${format.toUpperCase()} 格式兼容性...`)
+                    const backup = await dataManager.createFullBackup()
+                    
+                    let content
+                    if (format === 'json') {
+                        content = JSON.stringify(backup)
+                    } else {
+                        content = btoa(JSON.stringify(backup))
+                    }
+                    
+                    const validation = await dataManager.validateImportData(content)
+                    
+                    if (validation.isValid) {
+                        log(`✅ ${format.toUpperCase()} 格式兼容`, 'success')
+                    } else {
+                        log(`❌ ${format.toUpperCase()} 格式不兼容`, 'error')
+                    }
+                }
+                
+                log('✅ 兼容性測試完成', 'success')
+                
+            } catch (error) {
+                log(`❌ 兼容性測試失敗：${error.message}`, 'error')
+            }
+        }
+
+        async function getDetailedStats() {
+            try {
+                log('獲取詳細統計信息...')
+                const stats = await dataManager.getDetailedStats()
+                
+                log(`📊 詳細統計信息：`, 'success')
+                log(`總記錄數：${stats.totalRecords}`)
+                log(`數據類型：${stats.dataTypes} 種`)
+                log(`存儲使用：${dataManager.formatFileSize(stats.storageUsage)}`)
+                
+                Object.keys(stats.breakdown).forEach(key => {
+                    log(`${key}：${stats.breakdown[key]}`)
+                })
+                
+            } catch (error) {
+                log(`❌ 獲取統計失敗：${error.message}`, 'error')
+            }
+        }
+
+        async function refreshStats() {
+            try {
+                log('刷新統計信息...')
+                dataManager.updateStatusPanel()
+                log('✅ 統計信息已刷新', 'success')
+            } catch (error) {
+                log(`❌ 刷新統計失敗：${error.message}`, 'error')
+            }
+        }
+
+        async function clearAllData() {
+            const confirmed = confirm('⚠️ 確定要清除所有數據嗎？\n\n此操作不可撤銷！建議在清除前先創建備份。')
+            if (!confirmed) {
+                log('用戶取消了清除操作')
+                return
+            }
+
+            try {
+                log('開始清除所有數據...')
+                await dataManager.clearAllData()
+                log('✅ 所有數據已清除', 'success')
+                log('系統已重置為初始狀態')
+                
+            } catch (error) {
+                log(`❌ 清除數據失敗：${error.message}`, 'error')
+            }
+        }
+
+        // 輔助函數
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = e => resolve(e.target.result)
+                reader.onerror = () => reject(new Error('讀取文件失敗'))
+                reader.readAsText(file)
+            })
+        }
+    </script>
+</body>
+</html>
+
+

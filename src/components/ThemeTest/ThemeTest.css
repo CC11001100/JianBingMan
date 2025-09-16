@@ -1,0 +1,554 @@
+/**
+ * 主題測試組件樣式
+ */
+
+.theme-test {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  transition: all 0.3s ease;
+}
+
+/* 亮色主題樣式 */
+.theme-test-light {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  color: #212121;
+}
+
+/* 暗色主題樣式 */
+.theme-test-dark {
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+  color: #ffffff;
+}
+
+/* 卡片樣式增強 */
+.theme-test .MuiCard-root {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  border: 1px solid transparent;
+}
+
+.theme-test-light .MuiCard-root {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.theme-test-dark .MuiCard-root {
+  background: rgba(30, 30, 30, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.theme-test .MuiCard-root:hover {
+  transform: translateY(-4px);
+}
+
+.theme-test-light .MuiCard-root:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 107, 53, 0.2);
+}
+
+.theme-test-dark .MuiCard-root:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 138, 101, 0.3);
+}
+
+/* 按鈕樣式增強 */
+.theme-test .MuiButton-root {
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-test .MuiButton-contained {
+  background: linear-gradient(45deg, #ff6b35 30%, #ff8f5a 90%);
+}
+
+.theme-test-dark .MuiButton-contained {
+  background: linear-gradient(45deg, #ff8a65 30%, #ffbb93 90%);
+}
+
+.theme-test .MuiButton-contained:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
+}
+
+.theme-test .MuiButton-outlined:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 輸入框樣式增強 */
+.theme-test .MuiTextField-root {
+  transition: all 0.3s ease;
+}
+
+.theme-test .MuiOutlinedInput-root {
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+}
+
+.theme-test-light .MuiOutlinedInput-root {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.theme-test-dark .MuiOutlinedInput-root {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.theme-test .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-width: 2px;
+}
+
+.theme-test .MuiOutlinedInput-root.Mui-focused {
+  transform: scale(1.02);
+}
+
+/* 表格樣式增強 */
+.theme-test .MuiTableContainer-root {
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.theme-test-light .MuiTableContainer-root {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.theme-test-dark .MuiTableContainer-root {
+  background: rgba(30, 30, 30, 0.9);
+}
+
+.theme-test .MuiTableHead-root {
+  background: linear-gradient(45deg, rgba(255, 107, 53, 0.1) 30%, rgba(76, 175, 80, 0.1) 90%);
+}
+
+.theme-test .MuiTableRow-root:hover {
+  transform: scale(1.005);
+  transition: transform 0.2s ease;
+}
+
+.theme-test-light .MuiTableRow-root:hover {
+  background: rgba(255, 107, 53, 0.05);
+}
+
+.theme-test-dark .MuiTableRow-root:hover {
+  background: rgba(255, 138, 101, 0.08);
+}
+
+/* 芯片樣式增強 */
+.theme-test .MuiChip-root {
+  border-radius: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.theme-test .MuiChip-colorPrimary {
+  background: linear-gradient(45deg, #ff6b35 30%, #ff8f5a 90%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.theme-test .MuiChip-colorSecondary {
+  background: linear-gradient(45deg, #4caf50 30%, #80e27e 90%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.theme-test-dark .MuiChip-colorPrimary {
+  background: linear-gradient(45deg, #ff8a65 30%, #ffbb93 90%);
+  color: #000;
+}
+
+.theme-test-dark .MuiChip-colorSecondary {
+  background: linear-gradient(45deg, #66bb6a 30%, #98ee99 90%);
+  color: #000;
+}
+
+.theme-test .MuiChip-root:hover {
+  transform: scale(1.05);
+}
+
+/* 警告框樣式增強 */
+.theme-test .MuiAlert-root {
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.theme-test .MuiAlert-standardSuccess {
+  background: linear-gradient(45deg, rgba(76, 175, 80, 0.15) 30%, rgba(76, 175, 80, 0.05) 90%);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.theme-test .MuiAlert-standardWarning {
+  background: linear-gradient(45deg, rgba(255, 152, 0, 0.15) 30%, rgba(255, 152, 0, 0.05) 90%);
+  border-color: rgba(255, 152, 0, 0.3);
+}
+
+.theme-test .MuiAlert-standardError {
+  background: linear-gradient(45deg, rgba(244, 67, 54, 0.15) 30%, rgba(244, 67, 54, 0.05) 90%);
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.theme-test .MuiAlert-standardInfo {
+  background: linear-gradient(45deg, rgba(33, 150, 243, 0.15) 30%, rgba(33, 150, 243, 0.05) 90%);
+  border-color: rgba(33, 150, 243, 0.3);
+}
+
+/* 進度條樣式增強 */
+.theme-test .MuiLinearProgress-root {
+  border-radius: 8px;
+  height: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.theme-test .MuiLinearProgress-bar {
+  background: linear-gradient(90deg, #ff6b35 0%, #4caf50 100%);
+  border-radius: 8px;
+}
+
+.theme-test-dark .MuiLinearProgress-bar {
+  background: linear-gradient(90deg, #ff8a65 0%, #66bb6a 100%);
+}
+
+/* 圓形進度條樣式 */
+.theme-test .MuiCircularProgress-root {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.theme-test .MuiCircularProgress-circle {
+  stroke-linecap: round;
+}
+
+/* 浮動操作按鈕樣式 */
+.theme-test .MuiFab-root {
+  background: linear-gradient(45deg, #ff6b35 30%, #4caf50 90%);
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-test-dark .MuiFab-root {
+  background: linear-gradient(45deg, #ff8a65 30%, #66bb6a 90%);
+  box-shadow: 0 4px 16px rgba(255, 138, 101, 0.4);
+}
+
+.theme-test .MuiFab-root:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.6);
+}
+
+/* 導航欄樣式增強 */
+.theme-test .MuiAppBar-root {
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+}
+
+.theme-test-light .MuiAppBar-root {
+  background: linear-gradient(45deg, rgba(255, 107, 53, 0.9) 30%, rgba(76, 175, 80, 0.9) 90%);
+}
+
+.theme-test-dark .MuiAppBar-root {
+  background: linear-gradient(45deg, rgba(255, 138, 101, 0.9) 30%, rgba(102, 187, 106, 0.9) 90%);
+}
+
+/* 對話框樣式增強 */
+.theme-test .MuiDialog-paper {
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  border: 1px solid transparent;
+}
+
+.theme-test-light .MuiDialog-paper {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.theme-test-dark .MuiDialog-paper {
+  background: rgba(30, 30, 30, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 折疊面板樣式增強 */
+.theme-test .MuiAccordion-root {
+  border-radius: 16px !important;
+  margin: 8px 0 !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid transparent;
+}
+
+.theme-test-light .MuiAccordion-root {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.theme-test-dark .MuiAccordion-root {
+  background: rgba(30, 30, 30, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-test .MuiAccordion-root:before {
+  display: none;
+}
+
+.theme-test .MuiAccordionSummary-root {
+  border-radius: 16px 16px 0 0;
+  transition: all 0.3s ease;
+}
+
+.theme-test-light .MuiAccordionSummary-root {
+  background: rgba(255, 107, 53, 0.05);
+}
+
+.theme-test-dark .MuiAccordionSummary-root {
+  background: rgba(255, 138, 101, 0.08);
+}
+
+.theme-test .MuiAccordionSummary-root:hover {
+  transform: translateY(-1px);
+}
+
+.theme-test-light .MuiAccordionSummary-root:hover {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.theme-test-dark .MuiAccordionSummary-root:hover {
+  background: rgba(255, 138, 101, 0.12);
+}
+
+/* 滑塊樣式增強 */
+.theme-test .MuiSlider-root {
+  height: 8px;
+}
+
+.theme-test .MuiSlider-track {
+  background: linear-gradient(90deg, #ff6b35 0%, #4caf50 100%);
+  border: none;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.theme-test-dark .MuiSlider-track {
+  background: linear-gradient(90deg, #ff8a65 0%, #66bb6a 100%);
+}
+
+.theme-test .MuiSlider-thumb {
+  background: linear-gradient(45deg, #ff6b35 30%, #4caf50 90%);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+  width: 20px;
+  height: 20px;
+}
+
+.theme-test-dark .MuiSlider-thumb {
+  background: linear-gradient(45deg, #ff8a65 30%, #66bb6a 90%);
+  box-shadow: 0 2px 8px rgba(255, 138, 101, 0.4);
+}
+
+.theme-test .MuiSlider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* 切換按鈕組樣式 */
+.theme-test .MuiToggleButtonGroup-root {
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+}
+
+.theme-test .MuiToggleButton-root {
+  border-radius: 0;
+  transition: all 0.3s ease;
+}
+
+.theme-test .MuiToggleButton-root.Mui-selected {
+  background: linear-gradient(45deg, #ff6b35 30%, #4caf50 90%);
+  color: white;
+}
+
+.theme-test-dark .MuiToggleButton-root.Mui-selected {
+  background: linear-gradient(45deg, #ff8a65 30%, #66bb6a 90%);
+  color: #000;
+}
+
+/* 評分組件樣式 */
+.theme-test .MuiRating-root {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.theme-test .MuiRating-iconFilled {
+  color: #ff6b35;
+}
+
+.theme-test-dark .MuiRating-iconFilled {
+  color: #ff8a65;
+}
+
+/* 響應式設計 */
+@media (max-width: 960px) {
+  .theme-test {
+    padding: 16px 8px;
+  }
+  
+  .theme-test .MuiCard-root {
+    margin: 8px 0;
+  }
+  
+  .theme-test .MuiFab-root {
+    bottom: 60px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .theme-test {
+    padding: 8px 4px;
+  }
+  
+  .theme-test .MuiButton-root {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .theme-test .MuiCard-root {
+    border-radius: 12px;
+  }
+  
+  .theme-test .MuiDialog-paper {
+    margin: 16px;
+    border-radius: 16px;
+  }
+}
+
+/* 高對比度模式支持 */
+@media (prefers-contrast: high) {
+  .theme-test .MuiCard-root,
+  .theme-test .MuiButton-root,
+  .theme-test .MuiTextField-root,
+  .theme-test .MuiDialog-paper {
+    border: 2px solid currentColor;
+  }
+  
+  .theme-test .MuiButton-contained {
+    background: currentColor !important;
+  }
+  
+  .theme-test .MuiChip-root {
+    border: 1px solid currentColor;
+  }
+}
+
+/* 減少動畫偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .theme-test *,
+  .theme-test *::before,
+  .theme-test *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .theme-test .MuiCard-root:hover,
+  .theme-test .MuiButton-root:hover,
+  .theme-test .MuiFab-root:hover {
+    transform: none !important;
+  }
+}
+
+/* 焦點樣式增強 */
+.theme-test .MuiButton-root:focus-visible,
+.theme-test .MuiIconButton-root:focus-visible {
+  outline: 3px solid #ff6b35;
+  outline-offset: 2px;
+}
+
+.theme-test-dark .MuiButton-root:focus-visible,
+.theme-test-dark .MuiIconButton-root:focus-visible {
+  outline-color: #ff8a65;
+}
+
+/* 載入狀態樣式 */
+.theme-test .loading-state {
+  pointer-events: none;
+  opacity: 0.6;
+  position: relative;
+}
+
+.theme-test .loading-state::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* 脈衝動畫 */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.theme-test .pulse-animation {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 漸變文字效果 */
+.theme-test .gradient-text {
+  background: linear-gradient(45deg, #ff6b35 30%, #4caf50 90%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 600;
+}
+
+.theme-test-dark .gradient-text {
+  background: linear-gradient(45deg, #ff8a65 30%, #66bb6a 90%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 玻璃形態效果 */
+.theme-test .glass-effect {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.theme-test-dark .glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+

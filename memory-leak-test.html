@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煎餅俠 - 內存洩漏檢測測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #4caf50, #2196f3);
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .control-panel h3 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: #4caf50;
+        }
+
+        .btn-primary:hover {
+            background: #388e3c;
+        }
+
+        .btn-danger {
+            background: #f44336;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .memory-monitor {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .memory-monitor h3 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+
+        .memory-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .memory-stat {
+            padding: 15px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(21, 101, 192, 0.05));
+            border: 1px solid rgba(33, 150, 243, 0.2);
+            text-align: center;
+        }
+
+        .memory-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .memory-stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .memory-chart {
+            height: 200px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196f3, #21cbf3);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .test-results {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .test-results h3 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            background: rgba(33, 150, 243, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .severity-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .severity-critical { background: #d32f2f; }
+        .severity-high { background: #f57c00; }
+        .severity-medium { background: #fbc02d; }
+        .severity-low { background: #388e3c; }
+
+        .result-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .metric-item {
+            padding: 8px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .metric-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .leak-list {
+            margin: 10px 0;
+        }
+
+        .leak-item {
+            padding: 8px;
+            margin: 4px 0;
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid #f44336;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .recommendation-list {
+            margin: 10px 0;
+        }
+
+        .recommendation-item {
+            padding: 8px;
+            margin: 4px 0;
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid #4caf50;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e0e0e0;
+            border-top: 6px solid #2196f3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .test-area {
+            display: none;
+            position: absolute;
+            top: -1000px;
+            left: -1000px;
+        }
+
+        .log-panel {
+            background: #1e1e1e;
+            color: #00ff00;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 0.85rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .expandable-section {
+            margin: 10px 0;
+        }
+
+        .section-header {
+            cursor: pointer;
+            padding: 10px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            user-select: none;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header:hover {
+            background: rgba(0,0,0,0.1);
+        }
+
+        .section-content {
+            display: none;
+            padding: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .section-content.expanded {
+            display: block;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .memory-stats,
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .result-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 內存洩漏檢測測試</h1>
+            <p>檢測應用是否存在內存洩漏問題，包括事件監聽器的清理、定時器的釋放、DOM節點的清理等。測試長時間運行後的內存使用情況。</p>
+        </div>
+
+        <!-- 內存監控 -->
+        <div class="memory-monitor">
+            <h3>📊 實時內存監控</h3>
+            <div class="memory-stats">
+                <div class="memory-stat">
+                    <div class="memory-stat-value" id="usedMemory">--</div>
+                    <div class="memory-stat-label">已用內存 (MB)</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-value" id="totalMemory">--</div>
+                    <div class="memory-stat-label">總內存 (MB)</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-value" id="memoryRatio">--%</div>
+                    <div class="memory-stat-label">使用率</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-value" id="nodeCount">--</div>
+                    <div class="memory-stat-label">DOM節點數</div>
+                </div>
+            </div>
+            <div class="memory-chart" id="memoryChart">
+                <svg width="100%" height="100%" id="memorySvg">
+                    <!-- 內存使用圖表 -->
+                </svg>
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>測試控制</h3>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="runEventLeakTest()">事件監聽器洩漏測試</button>
+                <button class="btn btn-primary" onclick="runTimerLeakTest()">定時器洩漏測試</button>
+                <button class="btn btn-primary" onclick="runDOMLeakTest()">DOM節點洩漏測試</button>
+                <button class="btn btn-primary" onclick="runComponentTest()">組件生命週期測試</button>
+                <button class="btn btn-primary" onclick="runLongRunningTest()">長時間運行測試</button>
+            </div>
+            <div class="control-buttons">
+                <button class="btn" onclick="runAllTests()">🧪 運行所有測試</button>
+                <button class="btn btn-danger" onclick="stopAllTests()">⏹️ 停止測試</button>
+                <button class="btn" onclick="clearResults()">🗑️ 清除結果</button>
+                <button class="btn btn-warning" onclick="forceGC()">♻️ 強制GC</button>
+                <button class="btn" onclick="exportResults()">📋 導出結果</button>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="testProgress"></div>
+            </div>
+        </div>
+
+        <!-- 測試結果 -->
+        <div class="test-results">
+            <h3>📈 測試結果</h3>
+            <div class="results-grid" id="resultsGrid">
+                <div style="text-align: center; color: #666; grid-column: 1 / -1; padding: 40px;">
+                    還沒有測試結果，請運行內存洩漏檢測測試
+                </div>
+            </div>
+        </div>
+
+        <!-- 日志面板 -->
+        <div class="log-panel" id="logPanel" style="display: none;">
+            <!-- 日志內容 -->
+        </div>
+    </div>
+
+    <!-- 隱藏測試區域 -->
+    <div class="test-area" id="testArea">
+        <!-- 測試元素將在這裡動態創建 -->
+    </div>
+
+    <!-- 載入遮罩 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>
+            <div class="loading-spinner"></div>
+            <div style="text-align: center; margin-top: 20px; font-weight: 600;">
+                <span id="loadingText">測試進行中...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 內存洩漏檢測器
+        class MemoryLeakDetector {
+            constructor() {
+                this.isRunning = false;
+                this.currentTest = null;
+                this.results = [];
+                this.snapshots = [];
+                this.trackedTimers = new Map();
+                this.trackedEventListeners = [];
+                this.memoryHistory = [];
+                
+                this.startMemoryMonitoring();
+                this.setupResourceInterception();
+            }
+            
+            startMemoryMonitoring() {
+                setInterval(() => {
+                    this.updateMemoryDisplay();
+                }, 1000);
+            }
+            
+            updateMemoryDisplay() {
+                if (performance.memory) {
+                    const memory = performance.memory;
+                    const used = Math.round(memory.usedJSHeapSize / 1024 / 1024);
+                    const total = Math.round(memory.totalJSHeapSize / 1024 / 1024);
+                    const ratio = Math.round((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100);
+                    const nodes = document.querySelectorAll('*').length;
+                    
+                    document.getElementById('usedMemory').textContent = used;
+                    document.getElementById('totalMemory').textContent = total;
+                    document.getElementById('memoryRatio').textContent = ratio;
+                    document.getElementById('nodeCount').textContent = nodes;
+                    
+                    // 添加到歷史記錄
+                    this.memoryHistory.push({
+                        timestamp: Date.now(),
+                        used: memory.usedJSHeapSize,
+                        total: memory.totalJSHeapSize,
+                        nodes: nodes
+                    });
+                    
+                    // 保留最近100個記錄
+                    if (this.memoryHistory.length > 100) {
+                        this.memoryHistory.shift();
+                    }
+                    
+                    this.updateMemoryChart();
+                } else {
+                    document.getElementById('usedMemory').textContent = 'N/A';
+                    document.getElementById('totalMemory').textContent = 'N/A';
+                    document.getElementById('memoryRatio').textContent = 'N/A';
+                    document.getElementById('nodeCount').textContent = document.querySelectorAll('*').length;
+                }
+            }
+            
+            updateMemoryChart() {
+                if (this.memoryHistory.length < 2) return;
+                
+                const svg = document.getElementById('memorySvg');
+                const width = svg.clientWidth;
+                const height = svg.clientHeight;
+                
+                const maxMemory = Math.max(...this.memoryHistory.map(h => h.used));
+                const minMemory = Math.min(...this.memoryHistory.map(h => h.used));
+                
+                let pathData = '';
+                this.memoryHistory.forEach((point, index) => {
+                    const x = (index / (this.memoryHistory.length - 1)) * width;
+                    const y = height - ((point.used - minMemory) / (maxMemory - minMemory)) * height * 0.8;
+                    pathData += (index === 0 ? 'M' : 'L') + ` ${x} ${y}`;
+                });
+                
+                svg.innerHTML = `
+                    <defs>
+                        <linearGradient id="memoryGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#2196f3" stop-opacity="0.8"/>
+                            <stop offset="100%" stop-color="#2196f3" stop-opacity="0.2"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="${pathData}" stroke="#2196f3" stroke-width="2" fill="none"/>
+                    <path d="${pathData} L ${width} ${height} L 0 ${height} Z" fill="url(#memoryGradient)"/>
+                `;
+            }
+            
+            setupResourceInterception() {
+                // 攔截定時器創建
+                const originalSetTimeout = window.setTimeout;
+                const originalSetInterval = window.setInterval;
+                const originalClearTimeout = window.clearTimeout;
+                const originalClearInterval = window.clearInterval;
+                
+                window.setTimeout = (callback, delay, ...args) => {
+                    const id = originalSetTimeout(callback, delay, ...args);
+                    this.trackedTimers.set(id, {
+                        type: 'timeout',
+                        created: Date.now(),
+                        delay,
+                        cleared: false
+                    });
+                    return id;
+                };
+                
+                window.setInterval = (callback, delay, ...args) => {
+                    const id = originalSetInterval(callback, delay, ...args);
+                    this.trackedTimers.set(id, {
+                        type: 'interval',
+                        created: Date.now(),
+                        delay,
+                        cleared: false
+                    });
+                    return id;
+                };
+                
+                window.clearTimeout = (id) => {
+                    originalClearTimeout(id);
+                    const timer = this.trackedTimers.get(id);
+                    if (timer) {
+                        timer.cleared = true;
+                    }
+                };
+                
+                window.clearInterval = (id) => {
+                    originalClearInterval(id);
+                    const timer = this.trackedTimers.get(id);
+                    if (timer) {
+                        timer.cleared = true;
+                    }
+                };
+                
+                // 攔截事件監聽器
+                const originalAddEventListener = EventTarget.prototype.addEventListener;
+                const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+                
+                EventTarget.prototype.addEventListener = function(type, listener, options) {
+                    detector.trackedEventListeners.push({
+                        target: this,
+                        type,
+                        listener,
+                        added: Date.now(),
+                        removed: false
+                    });
+                    return originalAddEventListener.call(this, type, listener, options);
+                };
+                
+                EventTarget.prototype.removeEventListener = function(type, listener, options) {
+                    const tracked = detector.trackedEventListeners.find(t => 
+                        t.target === this && t.type === type && t.listener === listener && !t.removed
+                    );
+                    if (tracked) {
+                        tracked.removed = true;
+                    }
+                    return originalRemoveEventListener.call(this, type, listener, options);
+                };
+            }
+            
+            async runTest(config) {
+                return new Promise((resolve) => {
+                    this.isRunning = true;
+                    this.currentTest = config.name;
+                    this.snapshots = [];
+                    
+                    const startTime = Date.now();
+                    const startSnapshot = this.getMemorySnapshot();
+                    this.snapshots.push(startSnapshot);
+                    
+                    // 清理之前的跟蹤
+                    this.trackedTimers.clear();
+                    this.trackedEventListeners = [];
+                    
+                    // 執行測試設置
+                    config.setupTest();
+                    
+                    // 開始快照收集
+                    const snapshotInterval = setInterval(() => {
+                        if (this.isRunning) {
+                            this.snapshots.push(this.getMemorySnapshot());
+                        }
+                    }, 500);
+                    
+                    // 運行測試
+                    if (config.runTest) {
+                        if (config.iterations > 1) {
+                            this.runIterations(config, 0);
+                        } else {
+                            config.runTest();
+                        }
+                    }
+                    
+                    setTimeout(() => {
+                        this.isRunning = false;
+                        clearInterval(snapshotInterval);
+                        
+                        const endSnapshot = this.getMemorySnapshot();
+                        this.snapshots.push(endSnapshot);
+                        
+                        // 執行清理
+                        config.cleanupTest();
+                        
+                        // 分析結果
+                        const result = this.analyzeResults(config, startSnapshot, endSnapshot);
+                        this.results.push(result);
+                        this.displayResult(result);
+                        
+                        this.currentTest = null;
+                        resolve(result);
+                    }, config.duration);
+                });
+            }
+            
+            runIterations(config, iteration) {
+                if (iteration >= config.iterations || !this.isRunning) return;
+                
+                config.runTest();
+                setTimeout(() => {
+                    this.runIterations(config, iteration + 1);
+                }, 100);
+            }
+            
+            getMemorySnapshot() {
+                const now = Date.now();
+                let memoryInfo = {
+                    usedJSHeapSize: 0,
+                    totalJSHeapSize: 0,
+                    jsHeapSizeLimit: 0
+                };
+                
+                if (performance.memory) {
+                    memoryInfo = {
+                        usedJSHeapSize: performance.memory.usedJSHeapSize,
+                        totalJSHeapSize: performance.memory.totalJSHeapSize,
+                        jsHeapSizeLimit: performance.memory.jsHeapSizeLimit
+                    };
+                }
+                
+                return {
+                    timestamp: now,
+                    ...memoryInfo,
+                    nodeCount: document.querySelectorAll('*').length,
+                    activeTimers: Array.from(this.trackedTimers.values()).filter(t => !t.cleared).length,
+                    activeListeners: this.trackedEventListeners.filter(l => !l.removed).length
+                };
+            }
+            
+            analyzeResults(config, startSnapshot, endSnapshot) {
+                const duration = endSnapshot.timestamp - startSnapshot.timestamp;
+                const memoryGrowth = (endSnapshot.usedJSHeapSize - startSnapshot.usedJSHeapSize) / (1024 * 1024);
+                
+                const peakSnapshot = this.snapshots.reduce((peak, snapshot) => 
+                    snapshot.usedJSHeapSize > peak.usedJSHeapSize ? snapshot : peak
+                );
+                
+                // 分析事件監聽器洩漏
+                const eventLeaks = this.analyzeEventLeaks();
+                const timerLeaks = this.analyzeTimerLeaks();
+                
+                const suspectedLeaks = [];
+                const recommendations = [];
+                
+                if (memoryGrowth > 10) {
+                    suspectedLeaks.push(`內存增長過大: ${memoryGrowth.toFixed(2)}MB`);
+                    recommendations.push('檢查是否有大量對象未被垃圾回收');
+                }
+                
+                if (eventLeaks.length > 0) {
+                    suspectedLeaks.push(`未清理的事件監聽器: ${eventLeaks.length}個`);
+                    recommendations.push('確保所有添加的事件監聽器都在適當時機被移除');
+                }
+                
+                if (timerLeaks.length > 0) {
+                    suspectedLeaks.push(`未清理的定時器: ${timerLeaks.length}個`);
+                    recommendations.push('確保所有setTimeout和setInterval都被正確清理');
+                }
+                
+                let severity = 'low';
+                if (memoryGrowth > 50 || timerLeaks.length > 10 || eventLeaks.length > 20) {
+                    severity = 'critical';
+                } else if (memoryGrowth > 20 || timerLeaks.length > 5 || eventLeaks.length > 10) {
+                    severity = 'high';
+                } else if (memoryGrowth > 5 || timerLeaks.length > 2 || eventLeaks.length > 5) {
+                    severity = 'medium';
+                }
+                
+                return {
+                    testName: config.name,
+                    duration,
+                    memoryGrowth,
+                    startMemory: startSnapshot,
+                    endMemory: endSnapshot,
+                    peakMemory: peakSnapshot,
+                    suspectedLeaks,
+                    severity,
+                    recommendations,
+                    eventLeaks,
+                    timerLeaks,
+                    snapshots: this.snapshots.slice(),
+                    timestamp: Date.now()
+                };
+            }
+            
+            analyzeEventLeaks() {
+                const leaks = [];
+                const listenerMap = new Map();
+                
+                this.trackedEventListeners.forEach(listener => {
+                    const key = `${listener.target.constructor.name}-${listener.type}`;
+                    if (!listenerMap.has(key)) {
+                        listenerMap.set(key, { added: 0, removed: 0 });
+                    }
+                    const stats = listenerMap.get(key);
+                    stats.added++;
+                    if (listener.removed) {
+                        stats.removed++;
+                    }
+                });
+                
+                listenerMap.forEach((stats, key) => {
+                    if (stats.added > stats.removed) {
+                        leaks.push({
+                            type: key,
+                            count: stats.added - stats.removed
+                        });
+                    }
+                });
+                
+                return leaks;
+            }
+            
+            analyzeTimerLeaks() {
+                const leaks = [];
+                this.trackedTimers.forEach((timer, id) => {
+                    if (!timer.cleared) {
+                        leaks.push({
+                            id,
+                            type: timer.type,
+                            created: timer.created,
+                            delay: timer.delay
+                        });
+                    }
+                });
+                return leaks;
+            }
+            
+            displayResult(result) {
+                const resultsGrid = document.getElementById('resultsGrid');
+                
+                if (resultsGrid.children.length === 1 && resultsGrid.children[0].textContent.includes('還沒有')) {
+                    resultsGrid.innerHTML = '';
+                }
+                
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                
+                const suspectedLeaksHtml = result.suspectedLeaks.length > 0 ? 
+                    `<div class="expandable-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            ⚠️ 發現問題 (${result.suspectedLeaks.length})
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            ${result.suspectedLeaks.map(leak => `<div class="leak-item">${leak}</div>`).join('')}
+                        </div>
+                    </div>` : '';
+                
+                const recommendationsHtml = result.recommendations.length > 0 ?
+                    `<div class="expandable-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            💡 優化建議 (${result.recommendations.length})
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            ${result.recommendations.map(rec => `<div class="recommendation-item">${rec}</div>`).join('')}
+                        </div>
+                    </div>` : '';
+                
+                resultCard.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-title">${result.testName}</div>
+                        <div class="severity-badge severity-${result.severity}">${result.severity.toUpperCase()}</div>
+                    </div>
+                    <div class="result-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">測試時長:</span>
+                            <span class="metric-value">${Math.round(result.duration / 1000)}s</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">內存增長:</span>
+                            <span class="metric-value">${result.memoryGrowth.toFixed(2)}MB</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">事件洩漏:</span>
+                            <span class="metric-value">${result.eventLeaks.length}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">定時器洩漏:</span>
+                            <span class="metric-value">${result.timerLeaks.length}</span>
+                        </div>
+                    </div>
+                    ${suspectedLeaksHtml}
+                    ${recommendationsHtml}
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #666;">
+                        測試時間: ${new Date(result.timestamp).toLocaleString()}
+                    </div>
+                `;
+                
+                resultsGrid.appendChild(resultCard);
+            }
+            
+            stop() {
+                this.isRunning = false;
+                this.currentTest = null;
+            }
+        }
+        
+        // 全局檢測器實例
+        let detector = new MemoryLeakDetector();
+        let testResources = {
+            timers: [],
+            listeners: [],
+            elements: []
+        };
+        
+        // 測試配置
+        function createTestConfig(name, duration, setupTest, runTest, cleanupTest, iterations = 1) {
+            return {
+                name,
+                duration,
+                setupTest,
+                runTest,
+                cleanupTest,
+                iterations
+            };
+        }
+        
+        // 清理測試資源
+        function cleanupTestResources() {
+            testResources.timers.forEach(id => {
+                clearTimeout(id);
+                clearInterval(id);
+            });
+            testResources.timers = [];
+            
+            testResources.listeners.forEach(({ target, type, listener }) => {
+                target.removeEventListener(type, listener);
+            });
+            testResources.listeners = [];
+            
+            testResources.elements.forEach(element => {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+            });
+            testResources.elements = [];
+        }
+        
+        // 測試函數
+        async function runEventLeakTest() {
+            const config = createTestConfig(
+                '事件監聽器洩漏測試',
+                10000,
+                () => {
+                    cleanupTestResources();
+                    showLoading('事件監聽器洩漏測試');
+                },
+                () => {
+                    for (let i = 0; i < 20; i++) {
+                        const button = document.createElement('button');
+                        document.body.appendChild(button);
+                        testResources.elements.push(button);
+                        
+                        const listener = () => console.log('test click');
+                        button.addEventListener('click', listener);
+                        testResources.listeners.push({ target: button, type: 'click', listener });
+                        
+                        // 只清理一半（模擬洩漏）
+                        if (i % 2 === 0) {
+                            button.removeEventListener('click', listener);
+                        }
+                    }
+                },
+                () => {
+                    cleanupTestResources();
+                    hideLoading();
+                },
+                50
+            );
+            
+            await detector.runTest(config);
+        }
+        
+        async function runTimerLeakTest() {
+            const config = createTestConfig(
+                '定時器洩漏測試',
+                8000,
+                () => {
+                    cleanupTestResources();
+                    showLoading('定時器洩漏測試');
+                },
+                () => {
+                    for (let i = 0; i < 10; i++) {
+                        const timeoutId = setTimeout(() => {
+                            console.log('timeout executed');
+                        }, 1000 + i * 100);
+                        testResources.timers.push(timeoutId);
+                        
+                        const intervalId = setInterval(() => {
+                            console.log('interval executed');
+                        }, 2000 + i * 100);
+                        testResources.timers.push(intervalId);
+                    }
+                    
+                    // 只清理部分定時器（模擬洩漏）
+                    testResources.timers.slice(0, 5).forEach(id => {
+                        clearTimeout(id);
+                        clearInterval(id);
+                    });
+                },
+                () => {
+                    cleanupTestResources();
+                    hideLoading();
+                },
+                20
+            );
+            
+            await detector.runTest(config);
+        }
+        
+        async function runDOMLeakTest() {
+            const config = createTestConfig(
+                'DOM節點洩漏測試',
+                12000,
+                () => {
+                    cleanupTestResources();
+                    showLoading('DOM節點洩漏測試');
+                },
+                () => {
+                    const container = document.createElement('div');
+                    container.style.display = 'none';
+                    document.body.appendChild(container);
+                    testResources.elements.push(container);
+                    
+                    for (let i = 0; i < 100; i++) {
+                        const element = document.createElement('div');
+                        element.innerHTML = `<span>Test ${i}</span><button>Button</button>`;
+                        container.appendChild(element);
+                        
+                        const button = element.querySelector('button');
+                        const listener = () => console.log('button clicked');
+                        button.addEventListener('click', listener);
+                        testResources.listeners.push({ target: button, type: 'click', listener });
+                    }
+                    
+                    // 只移除一半節點（模擬洩漏）
+                    const children = Array.from(container.children);
+                    children.slice(0, children.length / 2).forEach(child => {
+                        container.removeChild(child);
+                    });
+                },
+                () => {
+                    cleanupTestResources();
+                    hideLoading();
+                },
+                30
+            );
+            
+            await detector.runTest(config);
+        }
+        
+        async function runComponentTest() {
+            const config = createTestConfig(
+                '組件生命週期測試',
+                15000,
+                () => {
+                    cleanupTestResources();
+                    showLoading('組件生命週期測試');
+                },
+                () => {
+                    const createComponent = () => {
+                        const data = new Array(500).fill(0).map((_, i) => ({
+                            id: i,
+                            value: Math.random(),
+                            callback: () => console.log('callback', i)
+                        }));
+                        
+                        const timerId = setInterval(() => {
+                            data.forEach(item => item.callback());
+                        }, 100);
+                        testResources.timers.push(timerId);
+                        
+                        return data;
+                    };
+                    
+                    for (let i = 0; i < 5; i++) {
+                        createComponent();
+                    }
+                },
+                () => {
+                    cleanupTestResources();
+                    hideLoading();
+                },
+                10
+            );
+            
+            await detector.runTest(config);
+        }
+        
+        async function runLongRunningTest() {
+            const config = createTestConfig(
+                '長時間運行測試',
+                30000,
+                () => {
+                    cleanupTestResources();
+                    showLoading('長時間運行測試');
+                },
+                () => {
+                    const simulateUserInteraction = () => {
+                        const element = document.createElement('div');
+                        element.innerHTML = '<button>Temp Button</button>';
+                        document.body.appendChild(element);
+                        
+                        const button = element.querySelector('button');
+                        const listener = () => {
+                            const tempData = new Array(50).fill(0).map(() => Math.random());
+                            console.log('User interaction', tempData.length);
+                        };
+                        button.addEventListener('click', listener);
+                        button.click();
+                        
+                        // 隨機決定是否清理
+                        if (Math.random() > 0.4) {
+                            button.removeEventListener('click', listener);
+                            if (element.parentNode) {
+                                element.parentNode.removeChild(element);
+                            }
+                        } else {
+                            testResources.elements.push(element);
+                            testResources.listeners.push({ target: button, type: 'click', listener });
+                        }
+                    };
+                    
+                    const interactionInterval = setInterval(simulateUserInteraction, 300);
+                    testResources.timers.push(interactionInterval);
+                },
+                () => {
+                    cleanupTestResources();
+                    hideLoading();
+                },
+                1
+            );
+            
+            await detector.runTest(config);
+        }
+        
+        async function runAllTests() {
+            showLoading('批次測試進行中');
+            
+            await runEventLeakTest();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            await runTimerLeakTest();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            await runDOMLeakTest();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            await runComponentTest();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            await runLongRunningTest();
+            
+            hideLoading();
+        }
+        
+        function stopAllTests() {
+            detector.stop();
+            cleanupTestResources();
+            hideLoading();
+        }
+        
+        function clearResults() {
+            detector.results = [];
+            const resultsGrid = document.getElementById('resultsGrid');
+            resultsGrid.innerHTML = `
+                <div style="text-align: center; color: #666; grid-column: 1 / -1; padding: 40px;">
+                    還沒有測試結果，請運行內存洩漏檢測測試
+                </div>
+            `;
+        }
+        
+        function forceGC() {
+            if (window.gc) {
+                window.gc();
+                alert('垃圾回收已執行');
+            } else {
+                alert('瀏覽器不支持手動垃圾回收');
+            }
+        }
+        
+        function exportResults() {
+            if (detector.results.length === 0) {
+                alert('沒有測試結果可以導出');
+                return;
+            }
+            
+            const report = generateReport();
+            const blob = new Blob([report], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `memory-leak-report-${new Date().toISOString().split('T')[0]}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function generateReport() {
+            const timestamp = new Date().toLocaleString('zh-TW');
+            
+            let report = `# 內存洩漏檢測報告\n\n`;
+            report += `**測試時間**: ${timestamp}\n\n`;
+            
+            const totalLeaks = detector.results.reduce((sum, r) => sum + r.suspectedLeaks.length, 0);
+            const avgMemoryGrowth = detector.results.reduce((sum, r) => sum + r.memoryGrowth, 0) / detector.results.length;
+            
+            report += `## 總體統計\n`;
+            report += `- **測試數量**: ${detector.results.length}\n`;
+            report += `- **發現問題**: ${totalLeaks}個\n`;
+            report += `- **平均內存增長**: ${avgMemoryGrowth.toFixed(2)}MB\n\n`;
+            
+            report += `## 測試結果\n\n`;
+            
+            detector.results.forEach(result => {
+                const icon = { critical: '🚨', high: '❌', medium: '⚠️', low: '✅' }[result.severity];
+                
+                report += `### ${icon} ${result.testName}\n`;
+                report += `- **嚴重程度**: ${result.severity.toUpperCase()}\n`;
+                report += `- **內存增長**: ${result.memoryGrowth.toFixed(2)}MB\n`;
+                
+                if (result.suspectedLeaks.length > 0) {
+                    report += `- **問題**: ${result.suspectedLeaks.join('; ')}\n`;
+                }
+                
+                if (result.recommendations.length > 0) {
+                    report += `- **建議**: ${result.recommendations.join('; ')}\n`;
+                }
+                
+                report += `\n`;
+            });
+            
+            return report;
+        }
+        
+        function showLoading(text) {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            loadingText.textContent = text;
+            overlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+        
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.expand-icon');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+        
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('內存洩漏檢測器已初始化');
+            console.log('瀏覽器內存API支持:', !!performance.memory);
+        });
+    </script>
+</body>
+</html>
+
+

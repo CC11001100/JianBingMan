@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煎餅俠 - CSS動畫性能測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #4caf50, #2196f3);
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .control-panel h3 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: #4caf50;
+        }
+
+        .btn-primary:hover {
+            background: #388e3c;
+        }
+
+        .btn-danger {
+            background: #f44336;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .device-info {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .device-info h3 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            padding: 10px;
+            border-left: 4px solid #2196f3;
+            background: rgba(33, 150, 243, 0.05);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .test-area {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            min-height: 200px;
+            position: relative;
+        }
+
+        .test-area h3 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+
+        .animation-showcase {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            min-height: 150px;
+        }
+
+        .test-element {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .test-element.active {
+            opacity: 1;
+        }
+
+        .progress-element {
+            background: linear-gradient(45deg, #2196f3, #21cbf3);
+        }
+
+        .spinner-element {
+            background: linear-gradient(45deg, #4caf50, #8bc34a);
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+        }
+
+        .button-element {
+            background: linear-gradient(45deg, #ff9800, #ffb74d);
+            transition: all 0.3s ease;
+        }
+
+        .fade-element {
+            background: linear-gradient(45deg, #9c27b0, #ba68c8);
+        }
+
+        .pulse-element {
+            background: linear-gradient(45deg, #e91e63, #f06292);
+        }
+
+        .scale-element {
+            background: linear-gradient(45deg, #00bcd4, #4dd0e1);
+        }
+
+        .slide-element {
+            background: linear-gradient(45deg, #ff5722, #ff8a65);
+        }
+
+        .rotate-element {
+            background: linear-gradient(45deg, #795548, #a1887f);
+        }
+
+        /* 動畫類 */
+        .spin-animation {
+            animation: spin 1s linear infinite;
+        }
+
+        .fade-animation {
+            animation: fadeInOut 1s ease-in-out infinite alternate;
+        }
+
+        .pulse-animation {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .scale-animation {
+            animation: scaleTest 1s ease-in-out infinite alternate;
+        }
+
+        .slide-animation {
+            animation: slideTest 2s ease-in-out infinite alternate;
+        }
+
+        .rotate-animation {
+            animation: rotate 2s linear infinite;
+        }
+
+        .button-hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes scaleTest {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1.2); }
+        }
+
+        @keyframes slideTest {
+            0% { transform: translateX(-30px); }
+            50% { transform: translateX(30px); }
+            100% { transform: translateX(0px); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196f3, #21cbf3);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .results-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .results-panel h3 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            background: rgba(33, 150, 243, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .result-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grade-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .grade-a { background: #4caf50; }
+        .grade-b { background: #2196f3; }
+        .grade-c { background: #ff9800; }
+        .grade-d, .grade-f { background: #f44336; }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .metrics-table th,
+        .metrics-table td {
+            padding: 6px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .metrics-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .metrics-table .good { color: #4caf50; font-weight: 600; }
+        .metrics-table .bad { color: #f44336; font-weight: 600; }
+        .metrics-table .warning { color: #ff9800; font-weight: 600; }
+
+        .issues-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .issues-list li {
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .issues-list .issue-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: white;
+        }
+
+        .issues-list .warning { background: #ff9800; }
+        .issues-list .error { background: #f44336; }
+        .issues-list .success { background: #4caf50; }
+
+        .performance-monitor {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .performance-monitor.active {
+            opacity: 1;
+        }
+
+        .performance-monitor div {
+            margin: 2px 0;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e0e0e0;
+            border-top: 6px solid #2196f3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .info-grid,
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .animation-showcase {
+                gap: 15px;
+            }
+            
+            .test-element {
+                width: 60px;
+                height: 60px;
+                font-size: 0.7rem;
+            }
+            
+            .performance-monitor {
+                position: static;
+                margin: 10px 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 CSS動畫性能測試</h1>
+            <p>驗證CSS動畫的性能表現，包括進度條動畫、按鈕過渡效果、對話框動畫等。測試動畫在不同設備上的流暢性和CPU使用率。</p>
+        </div>
+
+        <!-- 性能監控器 -->
+        <div class="performance-monitor" id="performanceMonitor">
+            <div>FPS: <span id="fpsDisplay">--</span></div>
+            <div>Frame Time: <span id="frameTimeDisplay">--</span>ms</div>
+            <div>Memory: <span id="memoryDisplay">--</span>MB</div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>測試控制</h3>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="runProgressTest()">進度條測試</button>
+                <button class="btn btn-primary" onclick="runSpinnerTest()">旋轉動畫測試</button>
+                <button class="btn btn-primary" onclick="runButtonTest()">按鈕過渡測試</button>
+                <button class="btn btn-primary" onclick="runFadeTest()">淡入動畫測試</button>
+                <button class="btn btn-primary" onclick="runPulseTest()">脈衝動畫測試</button>
+                <button class="btn btn-primary" onclick="runScaleTest()">縮放動畫測試</button>
+                <button class="btn btn-primary" onclick="runSlideTest()">滑動動畫測試</button>
+                <button class="btn btn-primary" onclick="runRotateTest()">旋轉動畫測試</button>
+            </div>
+            <div class="control-buttons">
+                <button class="btn" onclick="runAllTests()">🧪 運行所有測試</button>
+                <button class="btn" onclick="stopAllTests()">⏹️ 停止測試</button>
+                <button class="btn" onclick="clearResults()">🗑️ 清除結果</button>
+                <button class="btn" onclick="exportResults()">📋 導出結果</button>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="testProgress"></div>
+            </div>
+        </div>
+
+        <!-- 設備信息 -->
+        <div class="device-info">
+            <h3>📱 設備信息</h3>
+            <div class="info-grid" id="deviceInfo">
+                <!-- 設備信息將在這裡動態顯示 -->
+            </div>
+        </div>
+
+        <!-- 動畫測試區域 -->
+        <div class="test-area">
+            <h3>🎯 動畫展示區域</h3>
+            <div class="animation-showcase">
+                <div class="test-element progress-element" id="progressElement">
+                    進度
+                </div>
+                <div class="test-element spinner-element" id="spinnerElement">
+                    載入
+                </div>
+                <div class="test-element button-element" id="buttonElement">
+                    按鈕
+                </div>
+                <div class="test-element fade-element" id="fadeElement">
+                    淡入
+                </div>
+                <div class="test-element pulse-element" id="pulseElement">
+                    脈衝
+                </div>
+                <div class="test-element scale-element" id="scaleElement">
+                    縮放
+                </div>
+                <div class="test-element slide-element" id="slideElement">
+                    滑動
+                </div>
+                <div class="test-element rotate-element" id="rotateElement">
+                    旋轉
+                </div>
+            </div>
+        </div>
+
+        <!-- 測試結果 -->
+        <div class="results-panel">
+            <h3>📊 測試結果</h3>
+            <div class="results-grid" id="resultsGrid">
+                <div style="text-align: center; color: #666; grid-column: 1 / -1; padding: 40px;">
+                    還沒有測試結果，請運行動畫性能測試
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 載入遮罩 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>
+            <div class="loading-spinner"></div>
+            <div style="text-align: center; margin-top: 20px; font-weight: 600;">
+                <span id="loadingText">測試進行中...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 動畫性能測試器
+        class AnimationPerformanceTester {
+            constructor() {
+                this.isRunning = false;
+                this.currentTest = null;
+                this.results = [];
+                this.rafId = null;
+                this.startTime = 0;
+                this.frameCount = 0;
+                this.frameTimes = [];
+                this.lastFrameTime = 0;
+                
+                this.initDeviceInfo();
+                this.startPerformanceMonitoring();
+            }
+            
+            initDeviceInfo() {
+                const deviceInfo = this.getDeviceInfo();
+                const container = document.getElementById('deviceInfo');
+                
+                container.innerHTML = `
+                    <div class="info-item">
+                        <strong>平台:</strong> ${deviceInfo.platform}
+                    </div>
+                    <div class="info-item">
+                        <strong>CPU核心:</strong> ${deviceInfo.cores}
+                    </div>
+                    <div class="info-item">
+                        <strong>內存:</strong> ${deviceInfo.memory}
+                    </div>
+                    <div class="info-item">
+                        <strong>像素比:</strong> ${deviceInfo.pixelRatio}
+                    </div>
+                    <div class="info-item">
+                        <strong>屏幕:</strong> ${deviceInfo.screen}
+                    </div>
+                    <div class="info-item">
+                        <strong>設備類型:</strong> ${deviceInfo.deviceType}
+                    </div>
+                `;
+            }
+            
+            getDeviceInfo() {
+                const nav = navigator;
+                const screen = window.screen;
+                
+                return {
+                    platform: nav.platform,
+                    cores: nav.hardwareConcurrency || '未知',
+                    memory: nav.deviceMemory ? `${nav.deviceMemory}GB` : '未知',
+                    pixelRatio: window.devicePixelRatio || 1,
+                    screen: `${screen.width}x${screen.height}`,
+                    deviceType: nav.hardwareConcurrency <= 2 ? '低端設備' : '高性能設備'
+                };
+            }
+            
+            startPerformanceMonitoring() {
+                const monitor = document.getElementById('performanceMonitor');
+                const fpsDisplay = document.getElementById('fpsDisplay');
+                const frameTimeDisplay = document.getElementById('frameTimeDisplay');
+                const memoryDisplay = document.getElementById('memoryDisplay');
+                
+                let lastTime = performance.now();
+                let frameCount = 0;
+                let fps = 0;
+                
+                const updateMonitor = (currentTime) => {
+                    frameCount++;
+                    const deltaTime = currentTime - lastTime;
+                    
+                    if (deltaTime >= 1000) {
+                        fps = Math.round((frameCount * 1000) / deltaTime);
+                        fpsDisplay.textContent = fps;
+                        frameTimeDisplay.textContent = (1000 / fps).toFixed(2);
+                        
+                        // 更新內存信息
+                        if (performance.memory) {
+                            const memory = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+                            memoryDisplay.textContent = memory;
+                        }
+                        
+                        lastTime = currentTime;
+                        frameCount = 0;
+                    }
+                    
+                    if (this.isRunning) {
+                        monitor.classList.add('active');
+                    } else {
+                        monitor.classList.remove('active');
+                    }
+                    
+                    requestAnimationFrame(updateMonitor);
+                };
+                
+                requestAnimationFrame(updateMonitor);
+            }
+            
+            async runTest(name, element, animationClass, duration = 5000) {
+                return new Promise((resolve) => {
+                    this.isRunning = true;
+                    this.currentTest = name;
+                    this.frameCount = 0;
+                    this.frameTimes = [];
+                    this.startTime = performance.now();
+                    
+                    // 顯示載入遮罩
+                    const loadingOverlay = document.getElementById('loadingOverlay');
+                    const loadingText = document.getElementById('loadingText');
+                    loadingOverlay.classList.add('active');
+                    loadingText.textContent = `測試中: ${name}`;
+                    
+                    // 啟動動畫
+                    element.classList.add('active');
+                    if (animationClass) {
+                        element.classList.add(animationClass);
+                    }
+                    
+                    // 開始幀率測量
+                    let lastFrameTime = performance.now();
+                    
+                    const measureFrame = (currentTime) => {
+                        const frameTime = currentTime - lastFrameTime;
+                        this.frameTimes.push(frameTime);
+                        lastFrameTime = currentTime;
+                        this.frameCount++;
+                        
+                        if (this.isRunning && performance.now() - this.startTime < duration) {
+                            requestAnimationFrame(measureFrame);
+                        } else {
+                            this.finishTest(name, element, animationClass, resolve);
+                        }
+                    };
+                    
+                    requestAnimationFrame(measureFrame);
+                });
+            }
+            
+            finishTest(name, element, animationClass, resolve) {
+                this.isRunning = false;
+                
+                // 停止動畫
+                element.classList.remove('active');
+                if (animationClass) {
+                    element.classList.remove(animationClass);
+                }
+                
+                // 隱藏載入遮罩
+                document.getElementById('loadingOverlay').classList.remove('active');
+                
+                // 計算性能指標
+                const testDuration = performance.now() - this.startTime;
+                const metrics = this.calculateMetrics(testDuration);
+                const grade = this.calculateGrade(metrics);
+                const issues = this.analyzeIssues(metrics);
+                
+                const result = {
+                    name,
+                    metrics,
+                    grade,
+                    issues,
+                    timestamp: new Date().toLocaleString('zh-TW')
+                };
+                
+                this.results.push(result);
+                this.displayResult(result);
+                
+                resolve(result);
+            }
+            
+            calculateMetrics(testDuration) {
+                const totalFrames = this.frameTimes.length;
+                const avgFrameTime = this.frameTimes.reduce((a, b) => a + b, 0) / totalFrames;
+                const fps = totalFrames > 0 ? 1000 / avgFrameTime : 0;
+                const minFrameTime = Math.min(...this.frameTimes);
+                const maxFrameTime = Math.max(...this.frameTimes);
+                const jankFrames = this.frameTimes.filter(time => time > 16.67).length;
+                
+                let memoryUsage = null;
+                if (performance.memory) {
+                    memoryUsage = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+                }
+                
+                return {
+                    fps: Math.round(fps * 100) / 100,
+                    avgFrameTime: Math.round(avgFrameTime * 100) / 100,
+                    minFrameTime: Math.round(minFrameTime * 100) / 100,
+                    maxFrameTime: Math.round(maxFrameTime * 100) / 100,
+                    totalFrames,
+                    jankFrames,
+                    memoryUsage,
+                    duration: Math.round(testDuration)
+                };
+            }
+            
+            calculateGrade(metrics) {
+                const fpsRatio = metrics.fps / 60;
+                const jankRatio = metrics.jankFrames / metrics.totalFrames;
+                
+                if (fpsRatio >= 0.95 && jankRatio <= 0.05) return 'A';
+                if (fpsRatio >= 0.85 && jankRatio <= 0.10) return 'B';
+                if (fpsRatio >= 0.70 && jankRatio <= 0.20) return 'C';
+                if (fpsRatio >= 0.50 && jankRatio <= 0.35) return 'D';
+                return 'F';
+            }
+            
+            analyzeIssues(metrics) {
+                const issues = [];
+                
+                if (metrics.fps < 30) {
+                    issues.push({ type: 'error', message: '幀率過低，動畫不流暢' });
+                }
+                
+                if (metrics.jankFrames / metrics.totalFrames > 0.1) {
+                    issues.push({ type: 'warning', message: '卡頓幀過多，用戶體驗較差' });
+                }
+                
+                if (metrics.maxFrameTime > 100) {
+                    issues.push({ type: 'warning', message: '存在極長的幀時間' });
+                }
+                
+                if (metrics.fps >= 55) {
+                    issues.push({ type: 'success', message: '動畫性能良好' });
+                }
+                
+                return issues;
+            }
+            
+            displayResult(result) {
+                const resultsGrid = document.getElementById('resultsGrid');
+                
+                if (resultsGrid.children.length === 1 && resultsGrid.children[0].textContent.includes('還沒有')) {
+                    resultsGrid.innerHTML = '';
+                }
+                
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                
+                const issuesHtml = result.issues.map(issue => 
+                    `<li><span class="issue-icon ${issue.type}">${issue.type === 'success' ? '✓' : issue.type === 'warning' ? '!' : '✗'}</span>${issue.message}</li>`
+                ).join('');
+                
+                resultCard.innerHTML = `
+                    <h4>
+                        ${result.name}
+                        <span class="grade-badge grade-${result.grade.toLowerCase()}">${result.grade}</span>
+                    </h4>
+                    <table class="metrics-table">
+                        <tr>
+                            <td>FPS</td>
+                            <td class="${result.metrics.fps >= 50 ? 'good' : result.metrics.fps >= 30 ? 'warning' : 'bad'}">${result.metrics.fps}</td>
+                        </tr>
+                        <tr>
+                            <td>平均幀時間</td>
+                            <td>${result.metrics.avgFrameTime}ms</td>
+                        </tr>
+                        <tr>
+                            <td>卡頓幀數</td>
+                            <td class="${result.metrics.jankFrames < 5 ? 'good' : result.metrics.jankFrames < 20 ? 'warning' : 'bad'}">${result.metrics.jankFrames}</td>
+                        </tr>
+                        ${result.metrics.memoryUsage ? `<tr><td>內存使用</td><td>${result.metrics.memoryUsage}MB</td></tr>` : ''}
+                    </table>
+                    ${result.issues.length > 0 ? `<ul class="issues-list">${issuesHtml}</ul>` : ''}
+                    <small style="color: #666;">測試時間: ${result.timestamp}</small>
+                `;
+                
+                resultsGrid.appendChild(resultCard);
+            }
+            
+            stop() {
+                this.isRunning = false;
+                if (this.rafId) {
+                    cancelAnimationFrame(this.rafId);
+                }
+                
+                // 清理所有動畫
+                document.querySelectorAll('.test-element').forEach(element => {
+                    element.classList.remove('active');
+                    element.className = element.className.replace(/\s*\w*-animation/g, '');
+                });
+                
+                document.getElementById('loadingOverlay').classList.remove('active');
+            }
+        }
+        
+        // 全局測試器實例
+        let tester = new AnimationPerformanceTester();
+        
+        // 測試函數
+        async function runProgressTest() {
+            const element = document.getElementById('progressElement');
+            await tester.runTest('圓形進度條動畫', element, null, 4000);
+        }
+        
+        async function runSpinnerTest() {
+            const element = document.getElementById('spinnerElement');
+            await tester.runTest('旋轉載入動畫', element, 'spin-animation', 4000);
+        }
+        
+        async function runButtonTest() {
+            const element = document.getElementById('buttonElement');
+            // 模擬hover效果
+            const simulateHover = () => {
+                if (tester.isRunning) {
+                    element.classList.toggle('button-hover');
+                    setTimeout(simulateHover, 200);
+                }
+            };
+            setTimeout(simulateHover, 100);
+            await tester.runTest('按鈕過渡效果', element, null, 3000);
+        }
+        
+        async function runFadeTest() {
+            const element = document.getElementById('fadeElement');
+            await tester.runTest('淡入動畫', element, 'fade-animation', 3000);
+        }
+        
+        async function runPulseTest() {
+            const element = document.getElementById('pulseElement');
+            await tester.runTest('脈衝動畫', element, 'pulse-animation', 4000);
+        }
+        
+        async function runScaleTest() {
+            const element = document.getElementById('scaleElement');
+            await tester.runTest('縮放動畫', element, 'scale-animation', 3000);
+        }
+        
+        async function runSlideTest() {
+            const element = document.getElementById('slideElement');
+            await tester.runTest('滑動動畫', element, 'slide-animation', 4000);
+        }
+        
+        async function runRotateTest() {
+            const element = document.getElementById('rotateElement');
+            await tester.runTest('旋轉動畫', element, 'rotate-animation', 3000);
+        }
+        
+        async function runAllTests() {
+            const tests = [
+                runProgressTest,
+                runSpinnerTest,
+                runButtonTest,
+                runFadeTest,
+                runPulseTest,
+                runScaleTest,
+                runSlideTest,
+                runRotateTest
+            ];
+            
+            const progressBar = document.getElementById('testProgress');
+            
+            for (let i = 0; i < tests.length; i++) {
+                if (!tester.isRunning && i > 0) break; // 如果被停止了
+                
+                const progress = ((i + 1) / tests.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                await tests[i]();
+                await new Promise(resolve => setTimeout(resolve, 1000)); // 測試間隔
+            }
+            
+            progressBar.style.width = '0%';
+        }
+        
+        function stopAllTests() {
+            tester.stop();
+            document.getElementById('testProgress').style.width = '0%';
+        }
+        
+        function clearResults() {
+            tester.results = [];
+            const resultsGrid = document.getElementById('resultsGrid');
+            resultsGrid.innerHTML = `
+                <div style="text-align: center; color: #666; grid-column: 1 / -1; padding: 40px;">
+                    還沒有測試結果，請運行動畫性能測試
+                </div>
+            `;
+        }
+        
+        function exportResults() {
+            if (tester.results.length === 0) {
+                alert('沒有測試結果可以導出');
+                return;
+            }
+            
+            const report = generateReport(tester.results);
+            const blob = new Blob([report], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `animation-performance-report-${new Date().toISOString().split('T')[0]}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function generateReport(results) {
+            const deviceInfo = tester.getDeviceInfo();
+            const timestamp = new Date().toLocaleString('zh-TW');
+            
+            let report = `# CSS動畫性能測試報告\n\n`;
+            report += `**測試時間**: ${timestamp}\n\n`;
+            
+            report += `## 設備信息\n`;
+            report += `- **平台**: ${deviceInfo.platform}\n`;
+            report += `- **CPU核心**: ${deviceInfo.cores}\n`;
+            report += `- **內存**: ${deviceInfo.memory}\n`;
+            report += `- **像素比**: ${deviceInfo.pixelRatio}\n`;
+            report += `- **屏幕尺寸**: ${deviceInfo.screen}\n`;
+            report += `- **設備類型**: ${deviceInfo.deviceType}\n\n`;
+            
+            report += `## 測試結果\n\n`;
+            
+            results.forEach(result => {
+                report += `### ${result.name}\n`;
+                report += `- **等級**: ${result.grade}\n`;
+                report += `- **FPS**: ${result.metrics.fps}\n`;
+                report += `- **平均幀時間**: ${result.metrics.avgFrameTime}ms\n`;
+                report += `- **卡頓幀數**: ${result.metrics.jankFrames}/${result.metrics.totalFrames}\n`;
+                
+                if (result.issues.length > 0) {
+                    report += `- **問題**: ${result.issues.map(issue => issue.message).join(', ')}\n`;
+                }
+                
+                report += `\n`;
+            });
+            
+            return report;
+        }
+        
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('CSS動畫性能測試器已初始化');
+        });
+    </script>
+</body>
+</html>
+
+

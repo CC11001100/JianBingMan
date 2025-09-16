@@ -1,0 +1,397 @@
+/* DataBackupTest 組件樣式 */
+
+.data-backup-test {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.data-backup-test .MuiCard-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease-in-out;
+}
+
+.data-backup-test .MuiCard-root:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.data-backup-test .MuiCardContent-root {
+  flex: 1;
+}
+
+.data-backup-test .MuiChip-root {
+  margin: 2px;
+}
+
+/* 備份統計樣式 */
+.backup-stats-grid {
+  margin-bottom: 16px;
+}
+
+.backup-stats-item {
+  text-align: center;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  transition: background-color 0.2s ease;
+}
+
+.backup-stats-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.backup-stats-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1976d2;
+  margin-bottom: 4px;
+}
+
+.backup-stats-label {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* 驗證結果樣式 */
+.validation-result {
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.validation-result.success {
+  background-color: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.validation-result.error {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.validation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.validation-details {
+  margin-top: 16px;
+}
+
+/* 數據類型圖標樣式 */
+.data-type-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+/* 文件大小顯示 */
+.file-size {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 500;
+  color: #666;
+}
+
+/* 時間戳顯示 */
+.timestamp {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* 進度條容器 */
+.progress-container {
+  margin: 16px 0;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.progress-label {
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 操作按鈕組 */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.action-buttons .MuiButton-root {
+  transition: all 0.2s ease-in-out;
+}
+
+.action-buttons .MuiButton-root:hover {
+  transform: translateY(-1px);
+}
+
+/* 危險操作樣式 */
+.danger-section {
+  border: 2px solid rgba(244, 67, 54, 0.2);
+  border-radius: 8px;
+  background-color: rgba(244, 67, 54, 0.05);
+}
+
+.danger-section .MuiCardContent-root {
+  padding-bottom: 8px !important;
+}
+
+.danger-section .MuiButton-root {
+  border-color: #f44336;
+  color: #f44336;
+}
+
+.danger-section .MuiButton-root:hover {
+  background-color: rgba(244, 67, 54, 0.08);
+  border-color: #d32f2f;
+}
+
+/* 表格樣式優化 */
+.data-table {
+  margin-bottom: 16px;
+}
+
+.data-table .MuiTableCell-root {
+  padding: 8px 16px;
+}
+
+.data-table .MuiTableHead-root .MuiTableCell-root {
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.data-table-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 對話框樣式 */
+.import-dialog {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.import-dialog .MuiDialogContent-root {
+  padding-top: 16px !important;
+}
+
+.import-options {
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.import-options .MuiFormControlLabel-root {
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* 警告和錯誤列表 */
+.validation-messages {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.validation-messages .MuiList-root {
+  padding: 0;
+}
+
+.validation-messages .MuiListItem-root {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.validation-messages .MuiListItem-root:last-child {
+  border-bottom: none;
+}
+
+/* 載入狀態 */
+.loading-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .data-backup-test {
+    padding: 16px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-buttons .MuiButton-root {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .backup-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .data-table {
+    font-size: 0.875rem;
+  }
+  
+  .import-dialog {
+    margin: 16px;
+    max-width: calc(100vw - 32px);
+  }
+}
+
+@media (max-width: 480px) {
+  .data-backup-test {
+    padding: 8px;
+  }
+  
+  .MuiGrid-item {
+    padding: 8px !important;
+  }
+  
+  .MuiCard-root {
+    margin-bottom: 8px;
+  }
+  
+  .validation-result {
+    padding: 12px;
+  }
+  
+  .import-options {
+    padding: 12px;
+  }
+}
+
+/* 暗色主題適配 */
+@media (prefers-color-scheme: dark) {
+  .backup-stats-item {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .backup-stats-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .validation-result.success {
+    background-color: rgba(76, 175, 80, 0.2);
+  }
+  
+  .validation-result.error {
+    background-color: rgba(244, 67, 54, 0.2);
+  }
+  
+  .progress-container {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .import-options {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .data-table .MuiTableHead-root .MuiTableCell-root {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* 動畫效果 */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 成功/錯誤狀態動畫 */
+.success-pulse {
+  animation: successPulse 0.6s ease-in-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+.error-shake {
+  animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-4px);
+  }
+  40%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+

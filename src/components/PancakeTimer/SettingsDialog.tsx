@@ -25,11 +25,13 @@ import {
   Close as CloseIcon,
   VolumeUp as VolumeIcon,
   Vibration as VibrationIcon,
-  Casino as DiceIcon
+  Casino as DiceIcon,
+  Notifications as NotificationIcon
 } from '@mui/icons-material'
 import { storageManager, type PancakeSettings } from '../../utils/storage'
 import { speechManager } from '../../utils/speechSynthesis'
 import { soundEffectsManager } from '../../utils/soundEffects'
+import { notificationManager } from '../../utils/notification'
 import VoiceRecorder from './VoiceRecorder'
 import TimeIntervalSelector from './TimeIntervalSelector'
 
@@ -162,6 +164,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
   const [localSettings, setLocalSettings] = useState<PancakeSettings>(settings)
   const [testingVoice, setTestingVoice] = useState(false)
   const [testingSoundEffect, setTestingSoundEffect] = useState(false)
+  const [testingNotification, setTestingNotification] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [voiceMode, setVoiceMode] = useState<'system' | 'custom'>('system')
@@ -250,14 +253,28 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     }
   }
 
+  // 测试桌面通知
+  const testNotification = async () => {
+    if (testingNotification) return
+    
+    setTestingNotification(true)
+    try {
+      await notificationManager.testNotification()
+    } catch (error) {
+      console.error('Notification test failed:', error)
+    } finally {
+      setTestingNotification(false)
+    }
+  }
+
   // 保存设置
   const handleSave = async () => {
     try {
       setSaveError('')
       
       // 验证设置
-      if (localSettings.flipInterval < 10) {
-        setSaveError('翻面时间不能少于10秒')
+      if (localSettings.flipInterval < 1) {
+        setSaveError('翻面时间不能少于1秒')
         return
       }
       
@@ -292,6 +309,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
       speechEnabled: true,
       soundEffectsEnabled: true,
       soundEffectType: 'chime',
+      notificationEnabled: true,
       customVoiceId: null,
       lastUsed: Date.now()
     }
@@ -329,7 +347,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           <TimeIntervalSelector
             value={localSettings.flipInterval}
             onChange={updateFlipInterval}
-            min={10}
+            min={1}
             max={600}
             label="翻面时间间隔"
           />
@@ -698,6 +716,76 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             <Typography variant="body2" color="warning.main" sx={{ ml: 4 }}>
               当前设备不支持振动功能
             </Typography>
+          )}
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* 桌面通知设置 */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
+            🔔 桌面通知设置
+          </Typography>
+          
+          {/* 通知开关 */}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localSettings.notificationEnabled}
+                onChange={(e) => setLocalSettings(prev => ({ 
+                  ...prev, 
+                  notificationEnabled: e.target.checked 
+                }))}
+              />
+            }
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <NotificationIcon />
+                <Typography>启用桌面通知</Typography>
+              </Box>
+            }
+            sx={{ mb: 2 }}
+          />
+
+          {localSettings.notificationEnabled && (
+            <>
+              {/* 权限状态提示 */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  通知权限状态：{notificationManager.getPermissionStatus().description}
+                </Typography>
+                
+                {notificationManager.getPermissionStatus().canRequest && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => notificationManager.requestPermission()}
+                    sx={{ mr: 1 }}
+                  >
+                    请求通知权限
+                  </Button>
+                )}
+              </Box>
+
+              {/* 通知测试 */}
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Button 
+                  variant="outlined" 
+                  onClick={testNotification}
+                  disabled={testingNotification || !localSettings.notificationEnabled}
+                  startIcon={<NotificationIcon />}
+                  size="small"
+                >
+                  {testingNotification ? '测试中...' : '测试桌面通知'}
+                </Button>
+                
+                {!notificationManager.isSupported() && (
+                  <Typography variant="body2" color="warning.main">
+                    ⚠️ 浏览器不支持桌面通知
+                  </Typography>
+                )}
+              </Box>
+            </>
           )}
         </Box>
 

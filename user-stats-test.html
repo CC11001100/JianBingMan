@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煎餅俠 - 用戶使用統計測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e0e0e0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-card h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2b6cb0;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .test-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .test-card:hover {
+            border-color: #4299e1;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.2);
+        }
+
+        .test-card h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .test-card p {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .test-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+        }
+
+        .test-button:active {
+            transform: translateY(0);
+        }
+
+        .test-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-panel {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-panel h4 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .log-entry {
+            background: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border-left: 4px solid #4299e1;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry.success {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .log-entry.error {
+            border-left-color: #f56565;
+            background: #fff5f5;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ed8936;
+            background: #fffaf0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .usage-chart {
+            display: flex;
+            gap: 4px;
+            align-items: end;
+            height: 80px;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .usage-bar {
+            flex: 1;
+            background: linear-gradient(to top, #4299e1, #63b3ed);
+            border-radius: 2px;
+            min-height: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .usage-bar:hover {
+            background: linear-gradient(to top, #3182ce, #4299e1);
+            transform: translateY(-2px);
+        }
+
+        .usage-bar::after {
+            content: attr(data-day);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #718096;
+        }
+
+        .feature-status {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-dot.active {
+            background: #48bb78;
+            box-shadow: 0 0 8px rgba(72, 187, 120, 0.6);
+        }
+
+        .status-dot.inactive {
+            background: #a0aec0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 用戶使用統計測試</h1>
+            <p>驗證用戶使用統計功能，包括計時次數、使用時長、偏好設置等數據的收集和分析</p>
+        </div>
+
+        <div class="content">
+            <!-- 統計數據展示 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>📱 總計時次數</h3>
+                    <div class="stat-value" id="totalSessions">--</div>
+                    <div class="stat-label">次</div>
+                </div>
+                <div class="stat-card">
+                    <h3>⏱️ 總計時間</h3>
+                    <div class="stat-value" id="totalTime">--</div>
+                    <div class="stat-label">分鐘</div>
+                </div>
+                <div class="stat-card">
+                    <h3>🔥 當前連續天數</h3>
+                    <div class="stat-value" id="currentStreak">--</div>
+                    <div class="stat-label">天</div>
+                </div>
+                <div class="stat-card">
+                    <h3>⭐ 平均計時時間</h3>
+                    <div class="stat-value" id="averageTime">--</div>
+                    <div class="stat-label">秒</div>
+                </div>
+            </div>
+
+            <!-- 每週使用分佈圖表 -->
+            <div class="stat-card">
+                <h3>📅 每週使用分佈</h3>
+                <div class="usage-chart" id="weeklyChart">
+                    <div class="usage-bar" data-day="日" style="height: 20%"></div>
+                    <div class="usage-bar" data-day="一" style="height: 60%"></div>
+                    <div class="usage-bar" data-day="二" style="height: 80%"></div>
+                    <div class="usage-bar" data-day="三" style="height: 45%"></div>
+                    <div class="usage-bar" data-day="四" style="height: 70%"></div>
+                    <div class="usage-bar" data-day="五" style="height: 90%"></div>
+                    <div class="usage-bar" data-day="六" style="height: 30%"></div>
+                </div>
+            </div>
+
+            <!-- 功能使用狀態 -->
+            <div class="stat-card">
+                <h3>⚙️ 功能使用狀態</h3>
+                <div class="feature-status">
+                    <div class="status-dot active"></div>
+                    <span>語音提醒: 已啟用</span>
+                </div>
+                <div class="feature-status">
+                    <div class="status-dot active"></div>
+                    <span>振動提醒: 已啟用</span>
+                </div>
+                <div class="feature-status">
+                    <div class="status-dot inactive"></div>
+                    <span>音效提醒: 未啟用</span>
+                </div>
+                <div class="feature-status">
+                    <div class="status-dot active"></div>
+                    <span>桌面通知: 已啟用</span>
+                </div>
+            </div>
+
+            <!-- 測試操作區域 -->
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>📈 載入統計數據</h3>
+                    <p>獲取當前用戶的使用統計數據</p>
+                    <button class="test-button" onclick="loadUserStats()">載入數據</button>
+                </div>
+
+                <div class="test-card">
+                    <h3>📊 生成統計報告</h3>
+                    <p>生成詳細的使用分析報告</p>
+                    <button class="test-button" onclick="generateReport()">生成報告</button>
+                </div>
+
+                <div class="test-card">
+                    <h3>✅ 驗證數據完整性</h3>
+                    <p>檢查統計數據的準確性和完整性</p>
+                    <button class="test-button" onclick="validateData()">驗證數據</button>
+                </div>
+
+                <div class="test-card">
+                    <h3>📝 記錄測試活動</h3>
+                    <p>模擬記錄用戶活動和使用行為</p>
+                    <button class="test-button" onclick="recordActivity()">記錄活動</button>
+                </div>
+
+                <div class="test-card">
+                    <h3>🔒 隱私設置測試</h3>
+                    <p>測試隱私保護和數據匿名化</p>
+                    <button class="test-button" onclick="testPrivacy()">測試隱私</button>
+                </div>
+
+                <div class="test-card">
+                    <h3>📤 導出統計數據</h3>
+                    <p>將統計數據導出為JSON格式</p>
+                    <button class="test-button" onclick="exportData()">導出數據</button>
+                </div>
+
+                <div class="test-card">
+                    <h3>🧹 清理舊數據</h3>
+                    <p>清理過期的統計記錄</p>
+                    <button class="test-button" onclick="cleanupData()">清理數據</button>
+                </div>
+
+                <div class="test-card">
+                    <h3>⚡ 性能分析</h3>
+                    <p>分析統計功能的性能表現</p>
+                    <button class="test-button" onclick="analyzePerformance()">性能分析</button>
+                </div>
+            </div>
+
+            <!-- 結果展示區域 -->
+            <div class="result-panel">
+                <h4>📝 測試結果</h4>
+                <div id="resultContent">點擊上方按鈕開始測試...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 統計報告模態框 -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📊 統計報告</h3>
+                <button class="modal-close" onclick="closeModal('reportModal')">&times;</button>
+            </div>
+            <div id="reportContent">載入中...</div>
+        </div>
+    </div>
+
+    <!-- 隱私設置模態框 -->
+    <div class="modal" id="privacyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔒 隱私設置</h3>
+                <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
+            </div>
+            <div id="privacyContent">
+                <div class="feature-status">
+                    <input type="checkbox" id="dataCollection" checked>
+                    <label for="dataCollection">啟用數據收集</label>
+                </div>
+                <div class="feature-status">
+                    <input type="checkbox" id="anonymousMode">
+                    <label for="anonymousMode">匿名模式</label>
+                </div>
+                <div class="feature-status">
+                    <input type="checkbox" id="analytics">
+                    <label for="analytics">允許分析統計</label>
+                </div>
+                <div style="margin-top: 20px;">
+                    <label>數據保留天數:</label>
+                    <input type="number" value="365" min="1" max="9999" style="width: 100px; margin-left: 10px;">
+                </div>
+                <button class="test-button" style="margin-top: 20px;" onclick="savePrivacySettings()">保存設置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模擬統計數據管理器
+        class MockUserStatsManager {
+            constructor() {
+                this.stats = {
+                    totalSessions: 156,
+                    totalTime: 3240, // 秒
+                    currentStreak: 7,
+                    averageTime: 20.8,
+                    weeklyUsage: [12, 28, 35, 22, 31, 42, 15],
+                    features: {
+                        speechEnabled: true,
+                        vibrationEnabled: true,
+                        soundEffectsEnabled: false,
+                        notificationEnabled: true,
+                        customVoiceUsage: 23,
+                        calibrationCount: 8,
+                        settingsChangeCount: 15
+                    },
+                    performance: {
+                        averageLoadTime: 1200,
+                        memoryUsage: 45,
+                        errorCount: 2,
+                        cacheHitRate: 0.87
+                    }
+                }
+                this.activities = []
+                this.privacySettings = {
+                    dataCollectionEnabled: true,
+                    anonymousMode: false,
+                    allowAnalytics: false,
+                    dataRetentionDays: 365
+                }
+            }
+
+            async getUserStatistics() {
+                await this.delay(500)
+                return {
+                    usage: {
+                        totalSessions: this.stats.totalSessions,
+                        totalCookingTime: this.stats.totalTime,
+                        currentStreak: this.stats.currentStreak,
+                        averageSessionDuration: this.stats.averageTime,
+                        sessionsToday: 3,
+                        sessionsThisWeek: 18,
+                        sessionsThisMonth: 42,
+                        longestStreak: 15
+                    },
+                    timePreferences: {
+                        favoriteInterval: 20,
+                        averageInterval: this.stats.averageTime,
+                        mostUsedTimes: [9, 12, 15, 18],
+                        weekdayUsage: this.stats.weeklyUsage
+                    },
+                    featureUsage: this.stats.features,
+                    performance: this.stats.performance
+                }
+            }
+
+            async generateStatsReport(period = 'week') {
+                await this.delay(800)
+                return {
+                    summary: {
+                        period: period,
+                        totalSessions: this.stats.totalSessions,
+                        totalTime: Math.round(this.stats.totalTime / 60) + ' 分鐘',
+                        efficiency: 85,
+                        improvements: [
+                            '建議在早上使用計時器，效率更高',
+                            '可以嘗試使用語音提醒功能',
+                            '保持當前的使用習慣'
+                        ]
+                    },
+                    trends: {
+                        usagePattern: '穩定增長',
+                        peakUsageHours: [9, 12, 15, 18],
+                        preferredDurations: [15, 20, 25],
+                        consistencyScore: 0.75
+                    },
+                    insights: {
+                        topFeatures: ['語音提醒', '振動提醒', '桌面通知'],
+                        unusedFeatures: ['音效提醒', '自定義語音'],
+                        achievements: ['連續使用7天', '完成156次計時', '設置已優化'],
+                        optimizationSuggestions: [
+                            '啟用音效提醒可提升體驗',
+                            '嘗試錄製自定義語音',
+                            '調整計時間隔以提高效率'
+                        ]
+                    }
+                }
+            }
+
+            async recordActivity(activityType, details) {
+                await this.delay(200)
+                this.activities.push({
+                    type: activityType,
+                    details: details,
+                    timestamp: Date.now()
+                })
+                this.stats.totalSessions++
+                return true
+            }
+
+            async validateDataIntegrity() {
+                await this.delay(600)
+                return {
+                    isValid: true,
+                    errors: [],
+                    warnings: ['部分歷史數據缺少時間戳']
+                }
+            }
+
+            async exportStatistics(anonymize = false) {
+                await this.delay(400)
+                const data = anonymize ? 
+                    { ...this.stats, userId: 'anonymous' } : 
+                    { ...this.stats, userId: 'user_12345' }
+                return JSON.stringify(data, null, 2)
+            }
+
+            async cleanupOldData(retentionDays = 365) {
+                await this.delay(300)
+                const cutoffDate = Date.now() - (retentionDays * 24 * 60 * 60 * 1000)
+                this.activities = this.activities.filter(activity => activity.timestamp > cutoffDate)
+                return true
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms))
+            }
+        }
+
+        // 初始化
+        let statsManager
+        let testProgress = 0
+
+        document.addEventListener('DOMContentLoaded', () => {
+            statsManager = new MockUserStatsManager()
+            log('系統初始化完成，準備進行用戶統計測試')
+            updateProgress(10)
+        })
+
+        // 測試函數
+        async function loadUserStats() {
+            log('開始載入用戶統計數據...')
+            setLoading(true)
+            
+            try {
+                const stats = await statsManager.getUserStatistics()
+                
+                // 更新UI
+                document.getElementById('totalSessions').textContent = stats.usage.totalSessions
+                document.getElementById('totalTime').textContent = Math.round(stats.usage.totalCookingTime / 60)
+                document.getElementById('currentStreak').textContent = stats.usage.currentStreak
+                document.getElementById('averageTime').textContent = stats.usage.averageSessionDuration.toFixed(1)
+                
+                // 更新週使用分佈圖表
+                updateWeeklyChart(stats.timePreferences.weekdayUsage)
+                
+                log(`✅ 統計數據載入成功: 總計時${stats.usage.totalSessions}次，總時長${Math.round(stats.usage.totalCookingTime / 60)}分鐘`, 'success')
+                updateProgress(30)
+            } catch (error) {
+                log(`❌ 載入統計數據失敗: ${error.message}`, 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        async function generateReport() {
+            log('開始生成統計報告...')
+            setLoading(true)
+            
+            try {
+                const report = await statsManager.generateStatsReport('week')
+                
+                // 顯示報告模態框
+                const reportContent = document.getElementById('reportContent')
+                reportContent.innerHTML = `
+                    <h4>📈 報告摘要</h4>
+                    <p><strong>期間:</strong> ${report.summary.period}</p>
+                    <p><strong>總會話:</strong> ${report.summary.totalSessions}</p>
+                    <p><strong>總時間:</strong> ${report.summary.totalTime}</p>
+                    <p><strong>效率評分:</strong> ${report.summary.efficiency}%</p>
+                    
+                    <h4>🎯 改進建議</h4>
+                    <ul>
+                        ${report.summary.improvements.map(imp => `<li>${imp}</li>`).join('')}
+                    </ul>
+                    
+                    <h4>📊 使用趨勢</h4>
+                    <p><strong>使用模式:</strong> ${report.trends.usagePattern}</p>
+                    <p><strong>高峰時段:</strong> ${report.trends.peakUsageHours.join(', ')}</p>
+                    <p><strong>一致性評分:</strong> ${(report.trends.consistencyScore * 100).toFixed(0)}%</p>
+                    
+                    <h4>💡 洞察分析</h4>
+                    <p><strong>熱門功能:</strong> ${report.insights.topFeatures.join(', ')}</p>
+                    <p><strong>未使用功能:</strong> ${report.insights.unusedFeatures.join(', ')}</p>
+                    <p><strong>成就:</strong> ${report.insights.achievements.join(', ')}</p>
+                `
+                
+                openModal('reportModal')
+                log('✅ 統計報告生成成功', 'success')
+                updateProgress(50)
+            } catch (error) {
+                log(`❌ 生成統計報告失敗: ${error.message}`, 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        async function validateData() {
+            log('開始驗證數據完整性...')
+            setLoading(true)
+            
+            try {
+                const result = await statsManager.validateDataIntegrity()
+                
+                if (result.isValid) {
+                    log('✅ 數據完整性驗證通過', 'success')
+                    if (result.warnings.length > 0) {
+                        log(`⚠️ 警告: ${result.warnings.join(', ')}`, 'warning')
+                    }
+                } else {
+                    log(`❌ 數據驗證失敗: ${result.errors.join(', ')}`, 'error')
+                }
+                
+                updateProgress(70)
+            } catch (error) {
+                log(`❌ 數據驗證過程失敗: ${error.message}`, 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        async function recordActivity() {
+            log('開始記錄測試活動...')
+            setLoading(true)
+            
+            try {
+                await statsManager.recordActivity('timer_completion', { duration: 20, wasCalibration: false })
+                await statsManager.recordActivity('settings_change', { feature: 'speech_enabled' })
+                
+                log('✅ 測試活動記錄成功', 'success')
+                updateProgress(80)
+                
+                // 重新載入統計數據
+                await loadUserStats()
+            } catch (error) {
+                log(`❌ 記錄測試活動失敗: ${error.message}`, 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        function testPrivacy() {
+            log('打開隱私設置測試界面...')
+            openModal('privacyModal')
+            log('✅ 隱私功能測試準備完成', 'success')
+        }
+
+        async function exportData() {
+            log('開始導出統計數據...')
+            setLoading(true)
+            
+            try {
+                const data = await statsManager.exportStatistics(true) // 匿名導出
+                
+                // 創建下載鏈接
+                const blob = new Blob([data], { type: 'application/json' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `user-statistics-${new Date().toISOString().split('T')[0]}.json`
+                a.style.display = 'none'
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(url)
+                
+                log('✅ 統計數據導出成功，文件已下載', 'success')
+                updateProgress(90)
+            } catch (error) {
+                log(`❌ 導出統計數據失敗: ${error.message}`, 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        async function cleanupData() {
+            if (!confirm('確定要清理舊數據嗎？此操作不可撤銷。')) {
+                return
+            }
+            
+            log('開始清理舊數據...')
+            setLoading(true)
+            
+            try {
+                await statsManager.cleanupOldData(365)
+                log('✅ 舊數據清理成功', 'success')
+                updateProgress(95)
+            } catch (error) {
+                log(`❌ 清理舊數據失敗: ${error.message}`, 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        async function analyzePerformance() {
+            log('開始分析統計功能性能...')
+            setLoading(true)
+            
+            try {
+                const stats = await statsManager.getUserStatistics()
+                const perf = stats.performance
+                
+                log(`📊 性能分析結果:`)
+                log(`   平均載入時間: ${perf.averageLoadTime}ms`)
+                log(`   內存使用: ${perf.memoryUsage}MB`)
+                log(`   錯誤次數: ${perf.errorCount}`)
+                log(`   緩存命中率: ${(perf.cacheHitRate * 100).toFixed(1)}%`)
+                
+                // 性能評估
+                let score = 100
+                if (perf.averageLoadTime > 2000) score -= 20
+                if (perf.memoryUsage > 100) score -= 15
+                if (perf.errorCount > 5) score -= 25
+                if (perf.cacheHitRate < 0.8) score -= 20
+                
+                log(`📈 性能評分: ${score}/100`, score >= 80 ? 'success' : score >= 60 ? 'warning' : 'error')
+                updateProgress(100)
+            } catch (error) {
+                log(`❌ 性能分析失敗: ${error.message}`, 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        function savePrivacySettings() {
+            const settings = {
+                dataCollection: document.getElementById('dataCollection').checked,
+                anonymousMode: document.getElementById('anonymousMode').checked,
+                analytics: document.getElementById('analytics').checked
+            }
+            
+            log(`✅ 隱私設置已保存: ${JSON.stringify(settings)}`, 'success')
+            closeModal('privacyModal')
+        }
+
+        // 輔助函數
+        function updateWeeklyChart(weeklyData) {
+            const chart = document.getElementById('weeklyChart')
+            const bars = chart.querySelectorAll('.usage-bar')
+            const maxValue = Math.max(...weeklyData)
+            
+            bars.forEach((bar, index) => {
+                const height = (weeklyData[index] / maxValue) * 100
+                bar.style.height = height + '%'
+                bar.title = `${weeklyData[index]} 次`
+            })
+        }
+
+        function updateProgress(percentage) {
+            testProgress = percentage
+            // 這裡可以添加進度條更新邏輯
+        }
+
+        function setLoading(loading) {
+            const buttons = document.querySelectorAll('.test-button')
+            buttons.forEach(button => {
+                button.disabled = loading
+                if (loading) {
+                    button.classList.add('loading')
+                } else {
+                    button.classList.remove('loading')
+                }
+            })
+        }
+
+        function log(message, type = 'info') {
+            const resultContent = document.getElementById('resultContent')
+            const timestamp = new Date().toLocaleTimeString('zh-TW')
+            const logEntry = document.createElement('div')
+            logEntry.className = `log-entry ${type}`
+            logEntry.textContent = `[${timestamp}] ${message}`
+            
+            resultContent.appendChild(logEntry)
+            resultContent.scrollTop = resultContent.scrollHeight
+            
+            console.log(`[UserStatsTest] ${message}`)
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active')
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active')
+        }
+
+        // 點擊模態框背景關閉
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active')
+            }
+        })
+
+        // ESC 鍵關閉模態框
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active')
+                })
+            }
+        })
+    </script>
+</body>
+</html>
+
+
