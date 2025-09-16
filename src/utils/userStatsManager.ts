@@ -134,7 +134,6 @@ class UserStatsManager {
   private readonly PRIVACY_HASH_SALT = 'pancake-timer-privacy-2024'
   
   private currentSessionId: string = ''
-  private sessionStartTime: number = 0
   private performanceMetrics: { loadTime: number; memoryUsage: number }[] = []
   
   constructor() {
@@ -147,7 +146,7 @@ class UserStatsManager {
    */
   private initializeSession(): void {
     this.currentSessionId = this.generateSessionId()
-    this.sessionStartTime = Date.now()
+    // this.sessionStartTime = Date.now()
     
     // 記錄會話開始
     this.recordActivity('session_start', {}, this.currentSessionId)
@@ -246,7 +245,7 @@ class UserStatsManager {
    */
   async getUserStatistics(): Promise<UserStatistics> {
     try {
-      const [activities, settings, history, customVoices] = await Promise.all([
+      const [activities, settings, history] = await Promise.all([
         this.getStoredActivities(),
         storageManager.getSettings(),
         storageManager.getHistory(),
@@ -256,7 +255,7 @@ class UserStatsManager {
       const stats: UserStatistics = {
         usage: await this.calculateUsageStats(activities, history),
         timePreferences: await this.calculateTimePreferences(history),
-        featureUsage: await this.calculateFeatureUsage(activities, settings, customVoices),
+        featureUsage: await this.calculateFeatureUsage(activities, settings),
         performance: await this.calculatePerformanceStats(activities),
         environment: this.getEnvironmentInfo(),
         privacy: await this.getPrivacySettings(),
@@ -418,7 +417,7 @@ class UserStatsManager {
     }
   }
   
-  private async updateStatistics(activity: UsageActivity): Promise<void> {
+  private async updateStatistics(_activity: UsageActivity): Promise<void> {
     // 這裡可以實現實時統計更新邏輯
     // 為了簡化，我們在 getUserStatistics() 中重新計算
   }
@@ -463,7 +462,7 @@ class UserStatsManager {
     
     const favoriteInterval = parseInt(
       Object.entries(intervalDistribution)
-        .sort(([, a], [, b]) => b - a)[0]?.[0] || '0'
+        .sort(([, a], [, b]) => (b as number) - (a as number))[0]?.[0] || '0'
     )
     
     const averageInterval = Math.round(durations.reduce((sum, d) => sum + d, 0) / durations.length)
@@ -499,7 +498,6 @@ class UserStatsManager {
   private async calculateFeatureUsage(
     activities: UsageActivity[], 
     settings: any, 
-    customVoices: any[]
   ): Promise<UserStatistics['featureUsage']> {
     const calibrationActivities = activities.filter(a => 
       a.activityType === 'timer_complete' && a.details.feature === 'calibration'
@@ -651,7 +649,7 @@ class UserStatsManager {
     Object.keys(newSettings).forEach(key => {
       const k = key as keyof PancakeSettings
       if (oldSettings[k] !== newSettings[k]) {
-        diff[k] = newSettings[k]
+        diff[k] = newSettings[k] as any
       }
     })
     
@@ -734,7 +732,7 @@ class UserStatsManager {
     }
   }
   
-  private generateSummary(stats: UserStatistics, activities: UsageActivity[], period: string): StatsReport['summary'] {
+  private generateSummary(stats: UserStatistics, _activities: UsageActivity[], period: string): StatsReport['summary'] {
     const totalTime = this.formatDuration(stats.usage.totalCookingTime)
     const efficiency = this.calculateEfficiency(stats)
     
@@ -759,7 +757,7 @@ class UserStatsManager {
     }
   }
   
-  private generateInsights(stats: UserStatistics, activities: UsageActivity[]): StatsReport['insights'] {
+  private generateInsights(stats: UserStatistics, _activities: UsageActivity[]): StatsReport['insights'] {
     return {
       topFeatures: this.getTopFeatures(stats),
       unusedFeatures: this.getUnusedFeatures(stats),
@@ -925,6 +923,5 @@ class UserStatsManager {
 }
 
 export const userStatsManager = new UserStatsManager()
-export type { UserStatistics, UsageActivity, StatsReport }
 
 

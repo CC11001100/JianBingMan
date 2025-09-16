@@ -12,7 +12,7 @@ interface NotificationOptions {
   tag?: string
   requireInteraction?: boolean
   silent?: boolean
-  actions?: NotificationAction[]
+  actions?: Array<{ action: string; title: string; icon?: string }>
 }
 
 export class NotificationManager {
@@ -97,7 +97,7 @@ export class NotificationManager {
         tag: options.tag || 'pancake-timer',
         requireInteraction: options.requireInteraction || false,
         silent: options.silent || false,
-        actions: options.actions
+        // actions: options.actions
       })
 
       // 自动关闭通知（如果不需要交互）

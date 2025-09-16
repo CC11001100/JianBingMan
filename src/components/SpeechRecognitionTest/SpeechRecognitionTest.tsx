@@ -17,7 +17,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Divider,
   Chip,
   Table,
   TableBody,
@@ -32,7 +31,6 @@ import {
   DialogActions,
   Switch,
   FormControlLabel,
-  TextField,
   Select,
   MenuItem,
   FormControl,
@@ -51,7 +49,6 @@ import {
   Mic as MicIcon,
   MicOff as MicOffIcon,
   Timer as TimerIcon,
-  VolumeUp as VolumeIcon,
   Settings as SettingsIcon,
   PlayArrow as PlayIcon,
   Stop as StopIcon,
@@ -59,20 +56,16 @@ import {
   RestartAlt as RestartIcon,
   CheckCircle as CheckIcon,
   Error as ErrorIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon,
   ExpandMore as ExpandMoreIcon,
   RecordVoiceOver as VoiceIcon,
   GraphicEq as WaveIcon,
   Assessment as AssessmentIcon,
   Help as HelpIcon,
-  Language as LanguageIcon
 } from '@mui/icons-material'
 import { 
   speechRecognitionManager,
   type SpeechRecognitionResult,
   type VoiceCommand,
-  type CommandPattern
 } from '../../utils/speechRecognitionManager'
 import './SpeechRecognitionTest.css'
 
@@ -85,7 +78,7 @@ const SpeechRecognitionTest: React.FC = () => {
   // 識別結果和命令
   const [recognitionResults, setRecognitionResults] = useState<SpeechRecognitionResult[]>([])
   const [voiceCommands, setVoiceCommands] = useState<VoiceCommand[]>([])
-  const [unrecognizedSpeech, setUnrecognizedSpeech] = useState<any[]>([])
+  const [, setUnrecognizedSpeech] = useState<any[]>([])
   
   // 測試狀態
   const [testResults, setTestResults] = useState<{
@@ -130,7 +123,6 @@ const SpeechRecognitionTest: React.FC = () => {
   })
   
   // 測試控制
-  const [testMode, setTestMode] = useState<'basic' | 'advanced' | 'environmental'>('basic')
   const [audioLevel, setAudioLevel] = useState(0)
   const timerRef = useRef<number | null>(null)
 

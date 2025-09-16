@@ -216,10 +216,7 @@ class DataBackupManager {
 
       // 驗證校驗和
       if (backupData.checksum) {
-        const expectedChecksum = await this.calculateChecksum({
-          ...backupData,
-          checksum: ''
-        })
+        const expectedChecksum = await this.calculateChecksum(backupData)
         if (expectedChecksum !== backupData.checksum) {
           result.warnings.push('校驗和不匹配，數據可能已損壞')
         }

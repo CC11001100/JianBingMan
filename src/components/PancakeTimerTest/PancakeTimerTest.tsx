@@ -19,7 +19,6 @@ import {
   ListItemIcon,
   Switch,
   FormControlLabel,
-  TextField
 } from '@mui/material'
 import {
   PlayArrow as PlayIcon,
@@ -29,12 +28,8 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Timer as TimerIcon,
-  Settings as SettingsIcon,
-  VolumeUp as VolumeIcon,
-  Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
-  Warning as WarningIcon,
   Speed as SpeedIcon
 } from '@mui/icons-material'
 import PancakeTimer from '../PancakeTimer/PancakeTimer'
@@ -689,7 +684,6 @@ const PancakeTimerTest: React.FC = () => {
     let allPassed = true
 
     // 测试localStorage的使用
-    const initialStorageLength = localStorage.length
     
     try {
       // 模拟设置保存
@@ -1134,7 +1128,7 @@ const PancakeTimerTest: React.FC = () => {
 
     // 按类别分组
     const categories = ['basic', 'interaction', 'state', 'performance', 'edge-case']
-    const categoryNames = {
+    const categoryNames: Record<string, string> = {
       'basic': '基础功能',
       'interaction': '交互测试',
       'state': '状态管理',

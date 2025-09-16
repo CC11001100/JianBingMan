@@ -12,12 +12,10 @@ import {
   Grid,
   Button,
   Alert,
-  LinearProgress,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  Divider,
   Chip,
   Table,
   TableBody,
@@ -30,8 +28,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Switch,
-  FormControlLabel,
   TextField,
   CircularProgress,
   Accordion,
@@ -61,7 +57,6 @@ import {
 } from '@mui/icons-material'
 import { 
   multiInstanceManager,
-  type InstanceState,
   type MultiInstanceEvent,
   type MultiInstanceEventType
 } from '../../utils/multiInstanceManager'
@@ -87,7 +82,6 @@ const MultiInstanceTest: React.FC = () => {
   // UI 狀態
   const [loading, setLoading] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [testMode, setTestMode] = useState(false)
   const [mockTimer, setMockTimer] = useState(false)
   const [resourceLockTest, setResourceLockTest] = useState('')
   const [syncTestData, setSyncTestData] = useState('')
@@ -292,7 +286,7 @@ const MultiInstanceTest: React.FC = () => {
       'timer_paused': <TimerIcon color="warning" />,
       'settings_changed': <SettingsIcon color="info" />,
       'data_updated': <StorageIcon color="info" />,
-      'focus_changed': <NotificationsIcon color="default" />,
+      'focus_changed': <NotificationsIcon color="inherit" />,
       'resource_conflict': <WarningIcon color="error" />
     }
     return iconMap[type] || <InfoIcon />

@@ -15,7 +15,6 @@ import {
   ListItem,
   ListItemText,
   Chip,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -23,16 +22,8 @@ import {
   TableHead,
   TableRow,
   TextField,
-  MenuItem,
-  FormControlLabel,
-  Switch,
-  IconButton,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails
 } from '@mui/material'
 import {
-  ExpandMore as ExpandMoreIcon,
   PlayArrow as PlayArrowIcon,
   History as HistoryIcon,
   Assessment as AssessmentIcon,
@@ -69,8 +60,8 @@ const HistoryTest: React.FC = () => {
   const [suggestions, setSuggestions] = useState<OptimizationSuggestion[]>([])
 
   // 篩選和排序狀態
-  const [filter, setFilter] = useState<HistoryFilter>({})
-  const [sort, setSort] = useState<HistorySortOptions>({ field: 'timestamp', order: 'desc' })
+  const [filter] = useState<HistoryFilter>({})
+  const [sort] = useState<HistorySortOptions>({ field: 'timestamp', order: 'desc' })
 
   // 測試結果狀態
   const [testResults, setTestResults] = useState<{
@@ -91,16 +82,12 @@ const HistoryTest: React.FC = () => {
     setError('')
 
     try {
-      const now = Date.now()
-      const oneDay = 24 * 60 * 60 * 1000
 
       // 清除現有數據
       await storageManager.clearAllData()
 
       // 生成測試記錄
       for (let i = 0; i < testDataCount; i++) {
-        const daysAgo = Math.floor(Math.random() * 90) // 過去90天內
-        const timestamp = now - (daysAgo * oneDay) + Math.random() * oneDay
         
         // 生成不同類型的持續時間
         let duration: number

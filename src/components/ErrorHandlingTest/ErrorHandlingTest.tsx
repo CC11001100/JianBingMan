@@ -17,7 +17,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  CircularProgress,
   Switch,
   FormControlLabel,
   Accordion,
@@ -39,7 +38,6 @@ import {
   NetworkWifi as NetworkIcon,
   Api as ApiIcon,
   BugReport as RuntimeIcon,
-  Refresh as RefreshIcon
 } from '@mui/icons-material'
 import { errorHandlingTester, type ErrorTestReport, type ErrorTestResult } from '../../utils/errorHandlingTest'
 import './ErrorHandlingTest.css'
@@ -294,15 +292,6 @@ const ErrorHandlingTest: React.FC = () => {
     })
   }
 
-  // 获取类别颜色
-  const getCategoryColor = (category: string) => {
-    return testCategories.find(cat => cat.id === category)?.color || '#666'
-  }
-
-  // 获取类别图标
-  const getCategoryIcon = (category: string) => {
-    return testCategories.find(cat => cat.id === category)?.icon || <ErrorIcon />
-  }
 
   // 获取稳定性颜色
   const getStabilityColor = (stability: string) => {

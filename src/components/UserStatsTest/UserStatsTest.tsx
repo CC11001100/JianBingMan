@@ -9,19 +9,11 @@ import {
   Typography,
   Card,
   CardContent,
-  CardActions,
   Grid,
   Button,
   Alert,
   LinearProgress,
   Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   List,
   ListItem,
   ListItemText,
@@ -33,7 +25,6 @@ import {
   FormControlLabel,
   Switch,
   TextField,
-  Divider,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -43,7 +34,6 @@ import {
 } from '@mui/material'
 import {
   Analytics as AnalyticsIcon,
-  Timeline as TimelineIcon,
   Security as SecurityIcon,
   Assessment as AssessmentIcon,
   TrendingUp as TrendingUpIcon,
@@ -51,9 +41,7 @@ import {
   Settings as SettingsIcon,
   Download as DownloadIcon,
   Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
   VerifiedUser as VerifiedUserIcon,
-  Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   ExpandMore as ExpandMoreIcon,
@@ -61,7 +49,6 @@ import {
   VolumeUp as VolumeUpIcon,
   Vibration as VibrationIcon,
   Notifications as NotificationsIcon,
-  Mic as MicIcon
 } from '@mui/icons-material'
 import { userStatsManager, type UserStatistics, type StatsReport } from '../../utils/userStatsManager'
 import './UserStatsTest.css'
@@ -360,14 +347,14 @@ const UserStatsTest: React.FC = () => {
               <Chip 
                 label={`${timePreferences.favoriteInterval} 秒`} 
                 color="primary" 
-                size="large"
+                size="medium"
               />
               
               <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>平均計時時間</Typography>
               <Chip 
                 label={`${timePreferences.averageInterval} 秒`} 
                 color="secondary" 
-                size="large"
+                size="medium"
               />
             </Grid>
             

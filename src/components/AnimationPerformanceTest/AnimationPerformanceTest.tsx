@@ -38,7 +38,6 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import StopIcon from '@mui/icons-material/Stop'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import WarningIcon from '@mui/icons-material/Warning'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -112,7 +111,7 @@ const AnimationPerformanceTest: React.FC = () => {
       case 'A': case 'B': return <CheckCircleIcon />
       case 'C': return <WarningIcon />
       case 'D': case 'F': return <WarningIcon />
-      default: return null
+      default: return <WarningIcon />
     }
   }
 
@@ -457,7 +456,7 @@ const AnimationPerformanceTest: React.FC = () => {
       </Typography>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+        <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
           <Tab label="測試控制" />
           <Tab label="測試結果" />
           <Tab label="性能分析" />

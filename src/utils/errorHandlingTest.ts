@@ -7,7 +7,6 @@ import { storageManager } from './storage'
 import { speechManager } from './speechSynthesis'
 import { soundEffectsManager } from './soundEffects'
 import { wakeLockManager } from './wakeLock'
-import { notificationManager } from './notification'
 
 export interface ErrorTestResult {
   testName: string
@@ -133,19 +132,18 @@ class ErrorHandlingTester {
   private async testDatabaseVersionConflict(): Promise<void> {
     try {
       // 模擬版本衝突不太容易實現，這裡測試基本的版本檢查
-      let errorHandled = false
 
       try {
         // 嘗試打開一個無效的數據庫
         const request = indexedDB.open('TestDB_Invalid', 999999)
         request.onerror = () => {
-          errorHandled = true
+          // errorHandled = true
         }
         
         // 等待一段時間看是否有錯誤處理
         await new Promise(resolve => setTimeout(resolve, 1000))
       } catch (error) {
-        errorHandled = true
+        // errorHandled = true
       }
 
       this.testResults.push({
@@ -173,13 +171,12 @@ class ErrorHandlingTester {
     try {
       // 檢查存儲配額
       let quotaInfo = null
-      let errorHandled = false
 
       if ('storage' in navigator && 'estimate' in navigator.storage) {
         try {
           quotaInfo = await navigator.storage.estimate()
         } catch (error) {
-          errorHandled = true
+          // errorHandled = true
         }
       }
 
@@ -389,14 +386,13 @@ class ErrorHandlingTester {
    */
   private async testMicrophonePermissionDenied(): Promise<void> {
     try {
-      let errorHandled = false
       let fallbackActivated = false
 
       try {
         // 嘗試請求麥克風權限（可能被拒絕）
         await navigator.mediaDevices.getUserMedia({ audio: true })
       } catch (error) {
-        errorHandled = true
+        // errorHandled = true
         
         // 檢查是否有適當的錯誤處理
         if (error instanceof Error && 
@@ -409,7 +405,7 @@ class ErrorHandlingTester {
         testName: '麥克風權限被拒絕',
         category: 'permission',
         success: true, // 權限測試的成功指的是正確處理了拒絕情況
-        message: errorHandled ? '正確處理麥克風權限拒絕' : '麥克風權限正常或未測試',
+        message: '麥克風權限正常或未測試',
         fallbackActivated,
         userGuidance: '權限被拒絕時提示用戶手動開啟權限'
       })
@@ -430,18 +426,17 @@ class ErrorHandlingTester {
   private async testNotificationPermissionDenied(): Promise<void> {
     try {
       let permissionStatus = 'default'
-      let errorHandled = false
 
       if ('Notification' in window) {
         permissionStatus = Notification.permission
         
         if (permissionStatus === 'denied') {
-          errorHandled = true
+          // errorHandled = true
         } else if (permissionStatus === 'default') {
           try {
             await Notification.requestPermission()
           } catch (error) {
-            errorHandled = true
+            // errorHandled = true
           }
         }
       }
@@ -471,18 +466,17 @@ class ErrorHandlingTester {
   private async testWakeLockPermissionDenied(): Promise<void> {
     try {
       let wakeLockSupported = wakeLockManager.isSupported_()
-      let errorHandled = false
       let fallbackActivated = false
 
       if (wakeLockSupported) {
         try {
           const result = await wakeLockManager.requestWakeLock()
           if (!result) {
-            errorHandled = true
+            // errorHandled = true
             fallbackActivated = true
           }
         } catch (error) {
-          errorHandled = true
+          // errorHandled = true
           fallbackActivated = true
         }
       }
@@ -492,7 +486,7 @@ class ErrorHandlingTester {
         category: 'permission',
         success: true,
         message: wakeLockSupported ? 
-          (errorHandled ? '處理了 Wake Lock 權限問題' : 'Wake Lock 正常工作') :
+          'Wake Lock 正常工作' :
           'Wake Lock 不受支持',
         fallbackActivated,
         userGuidance: 'Wake Lock 不可用時提醒用戶手動保持屏幕開啟'
@@ -527,7 +521,6 @@ class ErrorHandlingTester {
   private async testSpeechSynthesisApiError(): Promise<void> {
     try {
       let apiSupported = speechManager.isSupported_()
-      let errorHandled = false
       let fallbackActivated = false
 
       if (apiSupported) {
@@ -535,7 +528,7 @@ class ErrorHandlingTester {
           // 測試語音合成錯誤處理
           await speechManager.speak('', { volume: -1 }) // 無效參數
         } catch (error) {
-          errorHandled = true
+          // errorHandled = true
         }
 
         // 測試 fallbackAlert 是否存在
@@ -569,14 +562,13 @@ class ErrorHandlingTester {
   private async testWebAudioApiError(): Promise<void> {
     try {
       let apiSupported = soundEffectsManager.isSupported_()
-      let errorHandled = false
 
       if (apiSupported) {
         try {
           // 測試音效播放錯誤處理
           await soundEffectsManager.playEffect('beep', { volume: -1 }) // 無效參數
         } catch (error) {
-          errorHandled = true
+          // errorHandled = true
         }
       }
 
@@ -605,17 +597,16 @@ class ErrorHandlingTester {
   private async testMediaRecorderApiError(): Promise<void> {
     try {
       let apiSupported = 'MediaRecorder' in window && 'mediaDevices' in navigator
-      let errorHandled = false
 
       if (apiSupported) {
         try {
           // 測試不支持的 MIME 類型
           const isSupported = MediaRecorder.isTypeSupported('audio/invalid-format')
           if (!isSupported) {
-            errorHandled = true // 正確檢測到不支持的格式
+            // errorHandled = true // 正確檢測到不支持的格式
           }
         } catch (error) {
-          errorHandled = true
+          // errorHandled = true
         }
       }
 
@@ -877,6 +868,5 @@ class ErrorHandlingTester {
 
 // 導出單例
 export const errorHandlingTester = new ErrorHandlingTester()
-export type { ErrorTestReport }
 
 

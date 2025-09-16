@@ -25,9 +25,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  IconButton,
-  Tooltip,
   Paper,
   Table,
   TableBody,
@@ -42,9 +39,7 @@ import {
   Download as DownloadIcon,
   Upload as UploadIcon,
   Delete as DeleteIcon,
-  Info as InfoIcon,
   CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
   Error as ErrorIcon,
   Storage as StorageIcon,
   History as HistoryIcon,
@@ -241,18 +236,6 @@ const DataBackupTest: React.FC = () => {
     })
   }
 
-  /**
-   * 渲染數據類型圖標
-   */
-  const renderDataTypeIcon = (type: string) => {
-    switch (type) {
-      case 'settings': return <SettingsIcon color="primary" />
-      case 'calibration': return <TimelineIcon color="secondary" />
-      case 'history': return <HistoryIcon color="info" />
-      case 'customVoices': return <MicIcon color="success" />
-      default: return <StorageIcon />
-    }
-  }
 
   /**
    * 渲染驗證結果

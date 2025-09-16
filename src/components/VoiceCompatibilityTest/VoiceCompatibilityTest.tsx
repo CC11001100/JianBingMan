@@ -183,7 +183,7 @@ const VoiceCompatibilityTest: React.FC = () => {
                 <Chip
                   label={getCompatibilityText(testReport.overallCompatibility)}
                   color={getCompatibilityColor(testReport.overallCompatibility) as any}
-                  size="large"
+                  size="medium"
                   sx={{ fontSize: '1.1rem', px: 2, py: 1 }}
                 />
               </CardContent>

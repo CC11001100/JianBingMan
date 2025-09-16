@@ -497,6 +497,5 @@ class AnimationPerformanceTester {
 }
 
 export const animationPerformanceTester = new AnimationPerformanceTester()
-export type { AnimationTestConfig, PerformanceReport, PerformanceMetrics, DeviceInfo }
 
 

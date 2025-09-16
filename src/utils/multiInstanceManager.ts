@@ -56,7 +56,6 @@ interface ResourceLock {
 
 class MultiInstanceManager {
   private instanceId: string
-  private isActive: boolean = false
   private instances: Map<string, InstanceState> = new Map()
   private eventListeners: Map<MultiInstanceEventType, ((event: MultiInstanceEvent) => void)[]> = new Map()
   private broadcastChannel: BroadcastChannel | null = null
@@ -143,7 +142,7 @@ class MultiInstanceManager {
     }
 
     this.instances.set(this.instanceId, instanceState)
-    this.isActive = instanceState.isActive
+    // this.isActive = instanceState.isActive
 
     // 通知其他實例
     this.broadcastEvent({

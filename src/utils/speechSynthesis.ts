@@ -227,7 +227,7 @@ class SpeechSynthesisManager {
       // 停止当前播放的语音
       speechSynthesis.cancel()
       if (this.currentAudio) {
-        this.currentAudio.pause()
+        (this.currentAudio as HTMLAudioElement).pause()
         this.currentAudio = null
       }
 

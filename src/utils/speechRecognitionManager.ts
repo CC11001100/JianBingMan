@@ -569,7 +569,6 @@ export const speechRecognitionManager = new SpeechRecognitionManager()
 export type {
   SpeechRecognitionConfig,
   CommandPattern,
-  VoiceCommand
 }
 
 

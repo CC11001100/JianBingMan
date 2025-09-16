@@ -88,7 +88,6 @@ interface TrackedEventListener {
 
 class MemoryLeakDetector {
   private isRunning: boolean = false
-  private currentTest: string | null = null
   private snapshots: MemorySnapshot[] = []
   private testStartTime: number = 0
   private snapshotTimer: number | null = null
@@ -104,7 +103,6 @@ class MemoryLeakDetector {
   private originalRemoveEventListener: typeof EventTarget.prototype.removeEventListener
   
   // 計數器
-  private timerIdCounter: number = 0
   private observingResources: boolean = false
 
   constructor() {
@@ -328,7 +326,7 @@ class MemoryLeakDetector {
     return new Promise((resolve, reject) => {
       try {
         this.isRunning = true
-        this.currentTest = config.name
+        // this.currentTest = config.name
         this.snapshots = []
         this.testStartTime = Date.now()
         this.trackedTimers.clear()
@@ -599,6 +597,5 @@ class MemoryLeakDetector {
 }
 
 export const memoryLeakDetector = MemoryLeakDetector.getInstance()
-export type { LeakTestConfig, MemoryLeakReport, MemorySnapshot }
 
 

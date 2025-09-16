@@ -3,7 +3,7 @@
  * 提供全面的主題功能測試和UI組件一致性驗證
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Box,
   Typography,
@@ -50,15 +50,10 @@ import {
   AccordionDetails,
   AppBar,
   Toolbar,
-  Badge,
   IconButton,
-  Menu,
-  MenuItem,
-  Tooltip,
   Breadcrumbs,
   Link,
   Rating,
-  Skeleton
 } from '@mui/material'
 import {
   Brightness4 as DarkIcon,
@@ -66,20 +61,15 @@ import {
   Settings as SettingsIcon,
   Home as HomeIcon,
   Star as StarIcon,
-  Favorite as FavoriteIcon,
-  Share as ShareIcon,
-  Download as DownloadIcon,
   ExpandMore as ExpandMoreIcon,
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
-  AccountCircle as AccountIcon,
   Add as AddIcon,
   Check as CheckIcon,
   Error as ErrorIcon,
-  Warning as WarningIcon,
   Info as InfoIcon
 } from '@mui/icons-material'
-import { useTheme, ThemeMode } from '../../contexts/ThemeContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import ThemeToggle from '../ThemeToggle/ThemeToggle'
 import './ThemeTest.css'
 
@@ -87,7 +77,6 @@ const ThemeTest: React.FC = () => {
   const { themeMode, actualTheme, setThemeMode } = useTheme()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
   const [sliderValue, setSliderValue] = useState(50)
   const [toggleValue, setToggleValue] = useState('light')
   const [checkboxChecked, setCheckboxChecked] = useState(true)

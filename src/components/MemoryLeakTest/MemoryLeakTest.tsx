@@ -33,7 +33,6 @@ import {
   Error as ErrorIcon
 } from '@mui/icons-material'
 import { memoryLeakDetector, type MemoryLeakReport, type LeakTestConfig } from '../../utils/memoryLeakDetector'
-import PancakeTimer from '../PancakeTimer/PancakeTimer'
 import './MemoryLeakTest.css'
 
 interface TestResult {
@@ -304,8 +303,8 @@ const MemoryLeakTest: React.FC = () => {
               
               // 模拟组件状态和副作用
               const componentState = {
-                timers: [],
-                listeners: [],
+                timers: [] as number[],
+                listeners: [] as Array<{ target: HTMLElement; event: string; handler: () => void }>,
                 mounted: true,
                 cleanup: function() {
                   this.timers.forEach(clearInterval)
@@ -486,7 +485,7 @@ const MemoryLeakTest: React.FC = () => {
               flipInterval: 120,
               volume: 0.8,
               speechEnabled: true,
-              customPrompts: []
+              customPrompts: [] as string[]
             }
             
             // 生成大量设置数据
@@ -549,7 +548,6 @@ const MemoryLeakTest: React.FC = () => {
               
               // 添加事件监听器
               const button = element.querySelector('button')
-              const input = element.querySelector('input')
               
               if (button) {
                 const clickHandler = () => {

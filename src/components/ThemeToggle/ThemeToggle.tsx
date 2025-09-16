@@ -57,19 +57,6 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
     }
   }
 
-  // 獲取主題模式的圖標
-  const getThemeModeIcon = (mode: ThemeMode) => {
-    switch (mode) {
-      case 'dark':
-        return <DarkModeIcon />
-      case 'light':
-        return <LightModeIcon />
-      case 'auto':
-        return <AutoModeIcon />
-      default:
-        return <LightModeIcon />
-    }
-  }
 
   // 獲取主題模式的標籤
   const getThemeModeLabel = (mode: ThemeMode) => {
